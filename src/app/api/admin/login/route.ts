@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   } catch (e) {
     // TEMP diagnostics: message only (no secrets); remove after setup is verified.
     console.error("admin login failed", e);
-    return jsonError(500, `Server error: ${e instanceof Error ? e.message.slice(0, 200) : "unknown"}`);
+    return jsonError(500, `Server error: ${e instanceof Error ? e.message.slice(0, 300) : "unknown"}`);
   }
 }
 

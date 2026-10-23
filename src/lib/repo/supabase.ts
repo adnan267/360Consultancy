@@ -19,7 +19,7 @@ export { db as serviceDb };
 function fail(error: { message: string } | null, what: string): asserts error is null {
   if (error) {
     console.error(`[supabase] ${what}:`, error.message);
-    throw new Error(`Database error: ${what}`);
+    throw new Error(`Database error: ${what}${process.env.DIAG_ERRORS === "1" ? ` (${error.message.slice(0, 120)})` : ""}`);
   }
 }
 
