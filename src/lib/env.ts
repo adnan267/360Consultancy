@@ -24,8 +24,9 @@ export function siteUrl(): string {
 }
 
 export function supabaseConfig(): { url: string; serviceKey: string } | null {
-  const url = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.SUPABASE_URL?.trim();
+  // Prefer the new-style secret key (sb_secret_...), fall back to the legacy service_role JWT.
+  const serviceKey = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)?.trim();
   if (!url || !serviceKey) return null;
   return { url, serviceKey };
 }
