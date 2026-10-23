@@ -6,16 +6,6 @@ import { loginSchema } from "@/lib/validation";
 const GENERIC = "Invalid email or password";
 
 export async function POST(req: Request) {
-  try {
-    return await handle(req);
-  } catch (e) {
-    // TEMP diagnostics: message only (no secrets); remove after setup is verified.
-    console.error("admin login failed", e);
-    return jsonError(500, `Server error: ${e instanceof Error ? e.message.slice(0, 300) : "unknown"}`);
-  }
-}
-
-async function handle(req: Request) {
   if (!isSameOrigin(req)) return jsonError(403, "Forbidden");
   if (!isDatabaseConfigured()) return jsonError(503, "Admin sign-in is not available until the database is configured.");
   let body: unknown;
