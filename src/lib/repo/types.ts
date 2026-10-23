@@ -157,6 +157,7 @@ export interface Repo {
 
   getAdminByEmail(email: string): Promise<AdminUser | null>;
   recordAdminLogin(id: string): Promise<void>;
+  setAdminPassword(id: string, passwordHash: string): Promise<void>;
 
   /** Returns true if the action is allowed, false if the limit is exceeded. */
   hitRateLimit(key: string, limit: number, windowSeconds: number): Promise<boolean>;

@@ -5,6 +5,8 @@ import { GET as exportCsv } from "@/app/api/admin/export/route";
 import { PATCH as patchBooking } from "@/app/api/admin/bookings/[id]/route";
 import { PATCH as patchService } from "@/app/api/admin/services/[id]/route";
 import { POST as login } from "@/app/api/admin/login/route";
+import { POST as changePassword } from "@/app/api/admin/password/route";
+import { verifyPassword } from "@/lib/auth";
 import { POST as createBooking } from "@/app/api/bookings/route";
 import { SignJWT } from "jose";
 import type { MemoryRepo } from "@/lib/repo";
@@ -142,5 +144,32 @@ describe("admin login", () => {
   it("round-trips session tokens", async () => {
     const t = await signSession({ sub: "s", email: "e@x.y", role: "staff" });
     expect(await verifySessionToken(t)).toEqual({ sub: "s", email: "e@x.y", role: "staff" });
+  });
+});
+
+describe("admin change password", () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  beforeEach(async () => {
+    repo.admins.push({ id: ID, email: "owner@example.com", password_hash: await hashPassword("correct horse battery"), role: "admin", is_active: true });
+  });
+  const cookie = async () => ({ cookie: `admin_session=${encodeURIComponent(await signSession({ sub: ID, email: "owner@example.com", role: "admin" }))}` });
+  it("requires a session", async () => {
+    expect((await changePassword(req("POST", "/api/admin/password", { body: { current_password: "a", new_password: "b".repeat(12) } }))).status).toBe(401);
+  });
+  it("rejects a wrong current password and short new passwords", async () => {
+    const h = await cookie();
+    const wrong = await changePassword(req("POST", "/api/admin/password", { ...h, body: { current_password: "nope", new_password: "a-brand-new-passphrase" } }));
+    expect(wrong.status).toBe(400);
+    const short = await changePassword(req("POST", "/api/admin/password", { ...h, body: { current_password: "correct horse battery", new_password: "short" } }));
+    expect(short.status).toBe(400);
+    expect(await verifyPassword("correct horse battery", repo.admins[0]!.password_hash)).toBe(true);
+  });
+  it("changes the password and logs the old one out", async () => {
+    const h = await cookie();
+    const ok = await changePassword(req("POST", "/api/admin/password", { ...h, body: { current_password: "correct horse battery", new_password: "a-brand-new-passphrase" } }));
+    expect(ok.status).toBe(200);
+    expect(await verifyPassword("a-brand-new-passphrase", repo.admins[0]!.password_hash)).toBe(true);
+    expect((await login(req("POST", "/api/admin/login", { body: { email: "owner@example.com", password: "correct horse battery" } }))).status).toBe(401);
+    expect((await login(req("POST", "/api/admin/login", { body: { email: "owner@example.com", password: "a-brand-new-passphrase" } }))).status).toBe(200);
   });
 });

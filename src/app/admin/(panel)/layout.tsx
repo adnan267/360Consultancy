@@ -29,7 +29,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               {can(session.role, "export:csv") && <a href="/api/admin/export" className="rounded-lg px-3 py-2 text-sm font-semibold text-navy-100 hover:bg-white/10 hover:text-white">Export CSV</a>}
             </nav>
           </div>
-          <div className="flex items-center gap-3 text-sm text-navy-200"><span>{session.email} · {session.role}</span><LogoutButton /></div>
+          <div className="flex items-center gap-3 text-sm text-navy-200"><span>{session.email} · {session.role}</span><Link href="/admin/password" className="font-semibold text-navy-100 hover:text-white">Password</Link><LogoutButton /></div>
         </Container>
       </header>
       <main id="main"><Container className="py-8">{children}</Container></main>

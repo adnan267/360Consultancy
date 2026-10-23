@@ -131,3 +131,8 @@ export const adminCaseActionSchema = z.discriminatedUnion("action", [
   z.strictObject({ action: z.literal("add_note"), note: z.string().trim().min(1).max(1000) }),
 ]);
 export type AdminCaseAction = z.infer<typeof adminCaseActionSchema>;
+
+export const changePasswordSchema = z.strictObject({
+  current_password: z.string().min(1).max(200),
+  new_password: z.string().min(12, "Use at least 12 characters").max(200),
+});

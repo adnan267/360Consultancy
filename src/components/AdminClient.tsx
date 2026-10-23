@@ -31,6 +31,32 @@ export function LogoutButton() {
   );
 }
 
+export function ChangePasswordForm() {
+  const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <form
+      className="space-y-4"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const fd = new FormData(form);
+        if (fd.get("new_password") !== fd.get("confirm")) { setMsg({ tone: "error", text: "New passwords do not match" }); return; }
+        setBusy(true); setMsg(null);
+        const r = await call("/api/admin/password", "POST", { current_password: fd.get("current_password"), new_password: fd.get("new_password") });
+        setBusy(false);
+        if (r.ok) { form.reset(); setMsg({ tone: "success", text: "Password changed. Use the new password next time you sign in." }); } else setMsg({ tone: "error", text: r.error ?? "Failed" });
+      }}
+    >
+      {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+      <div><label htmlFor="cp" className="mb-1 block text-sm font-semibold">Current password</label><input id="cp" name="current_password" type="password" autoComplete="current-password" required className={input} /></div>
+      <div><label htmlFor="np" className="mb-1 block text-sm font-semibold">New password</label><input id="np" name="new_password" type="password" autoComplete="new-password" minLength={12} required className={input} /></div>
+      <div><label htmlFor="cf" className="mb-1 block text-sm font-semibold">Confirm new password</label><input id="cf" name="confirm" type="password" autoComplete="new-password" minLength={12} required className={input} /></div>
+      <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Change password"}</Button>
+    </form>
+  );
+}
+
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

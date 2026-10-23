@@ -318,6 +318,10 @@ export class MemoryRepo implements Repo {
     return this.admins.find((a) => a.email.toLowerCase() === email.toLowerCase()) ?? null;
   }
   async recordAdminLogin() {}
+  async setAdminPassword(id: string, passwordHash: string) {
+    const a = this.admins.find((x) => x.id === id);
+    if (a) a.password_hash = passwordHash;
+  }
 
   async hitRateLimit(key: string, limit: number, windowSeconds: number) {
     const now = Date.now();

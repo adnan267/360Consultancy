@@ -374,6 +374,10 @@ export class SupabaseRepo implements Repo {
     fail(error, "getAdminByEmail");
     return (data as AdminUser | null) ?? null;
   }
+  async setAdminPassword(id: string, passwordHash: string) {
+    const { error } = await db().from("admin_users").update({ password_hash: passwordHash }).eq("id", id);
+    fail(error, "setAdminPassword");
+  }
   async recordAdminLogin(id: string) {
     await db().from("admin_users").update({ last_login_at: new Date().toISOString() }).eq("id", id);
   }
