@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: `${site.name} — Your Global Journey Starts With the Right Guidance`,
     description: site.description,
     url: siteUrl(),
-    images: [{ url: "/brand/logo-full.png", width: 1400, height: 782, alt: `${site.name} logo` }],
+    images: [{ url: "/brand/logo-full.png", width: 1400, height: 726, alt: `${site.name} logo` }],
   },
   twitter: { card: "summary_large_image" },
   alternates: { canonical: "/" },

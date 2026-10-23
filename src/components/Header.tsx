@@ -50,7 +50,7 @@ export function Header({ portal = false }: { portal?: boolean }) {
     <header className="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
       <div className="mx-auto flex h-[72px] w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" aria-label="360 Consultancy — home" className="shrink-0">
-          <Image src="/brand/logo-header.png" alt="360 Consultancy" width={720} height={402} priority className="h-[58px] w-auto xl:h-[62px]" />
+          <Image src="/brand/logo-header.png" alt="360 Consultancy" width={720} height={373} priority className="h-[58px] w-auto xl:h-[62px]" />
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 xl:flex">

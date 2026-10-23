@@ -23,7 +23,7 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           <div>
             <div className="inline-block rounded-2xl bg-white p-3 shadow-lg">
-              <Image src="/brand/logo-header.png" alt="360 Consultancy" width={720} height={402} className="h-16 w-auto" />
+              <Image src="/brand/logo-header.png" alt="360 Consultancy" width={720} height={373} className="h-16 w-auto" />
             </div>
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-navy-200">{site.description}</p>
             {socials.length > 0 && (
