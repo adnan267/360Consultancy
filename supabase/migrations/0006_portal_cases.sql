@@ -85,6 +85,8 @@ alter table public.cases enable row level security;
 alter table public.case_payments enable row level security;
 alter table public.case_documents enable row level security;
 revoke all on public.clients, public.cases, public.case_payments, public.case_documents from anon, authenticated;
+-- Explicit grant so this works even when "automatically expose new tables" is switched off.
+grant all on public.clients, public.cases, public.case_payments, public.case_documents to service_role;
 
 -- Private bucket for client documents (service role only; files are served through authenticated API routes).
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -100,3 +102,4 @@ begin
   return n;
 end $$;
 revoke all on function public.purge_expired_cases() from public, anon, authenticated;
+grant execute on function public.purge_expired_cases() to service_role;

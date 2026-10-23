@@ -11,3 +11,4 @@ create table if not exists public.payment_events (
 );
 alter table public.payment_events enable row level security;
 revoke all on public.payment_events from anon, authenticated;
+grant all on public.payment_events to service_role;
