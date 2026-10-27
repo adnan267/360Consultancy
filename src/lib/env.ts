@@ -56,7 +56,8 @@ export function nowPaymentsConfig() {
   const apiKey = process.env.NOWPAYMENTS_API_KEY?.trim();
   const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET?.trim();
   if (!apiKey || !ipnSecret) return null;
-  const priceCurrency = (process.env.NOWPAYMENTS_PRICE_CURRENCY?.trim() || "pkr").toLowerCase();
+  const clean = (v: string | undefined) => (v ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const priceCurrency = clean(process.env.NOWPAYMENTS_PRICE_CURRENCY) || "pkr";
   const pkrPerUsd = Number(process.env.PKR_PER_USD) || 0;
   if (priceCurrency === "usd" && pkrPerUsd <= 0) return null; // USD pricing needs an explicit rate
   return {
@@ -64,7 +65,7 @@ export function nowPaymentsConfig() {
     ipnSecret,
     priceCurrency,
     pkrPerUsd,
-    payCurrency: (process.env.NOWPAYMENTS_PAY_CURRENCY?.trim() ?? "").toLowerCase(),
+    payCurrency: clean(process.env.NOWPAYMENTS_PAY_CURRENCY),
     apiBase: process.env.NOWPAYMENTS_API_BASE?.trim() || "https://api.nowpayments.io",
   };
 }
