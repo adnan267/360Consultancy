@@ -58,6 +58,7 @@ export function nowPaymentsConfig() {
   if (!apiKey || !ipnSecret) return null;
   const clean = (v: string | undefined) => (v ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const priceCurrency = clean(process.env.NOWPAYMENTS_PRICE_CURRENCY) || "pkr";
+  if (priceCurrency !== "pkr" && priceCurrency !== "usd") return null; // refuse a malformed value rather than charge in the wrong currency
   const pkrPerUsd = Number(process.env.PKR_PER_USD) || 0;
   if (priceCurrency === "usd" && pkrPerUsd <= 0) return null; // USD pricing needs an explicit rate
   return {
