@@ -22,7 +22,7 @@ const steps = [
 export const revalidate = 300;
 
 export default async function StudyAbroadPage() {
-  const countries = (await getPublicCountries()).filter((c) => getCountryContent(c.slug));
+  const countries = (await getPublicCountries()).filter((c) => getCountryContent(c.slug) && !getCountryContent(c.slug)?.entry);
   return (
     <>
       <PageHero eyebrow="Study abroad" title="Plan your studies abroad with clear, honest guidance" intro="From choosing a country to preparing your documents — we explain each step and never promise an outcome.">

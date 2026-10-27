@@ -29,7 +29,7 @@ export default function HowItWorksPage() {
           {statuses.map(([t, d]) => (<div key={t} className="grid gap-1 p-5 sm:grid-cols-[14rem_1fr]"><dt className="font-bold text-navy-900">{t}</dt><dd className="text-sm text-muted">{d}</dd></div>))}
         </dl>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <Notice tone="info" title="Payment">Bank transfer with manual verification. A screenshot alone never confirms a booking — we check our actual bank account records.</Notice>
+          <Notice tone="info" title="Payment">Each step is paid online before it begins. A step opens only after the payment is confirmed by our payment partner; a screenshot never confirms anything.</Notice>
           <Notice tone="warn" title="No guarantees">We provide guidance only. Final visa decisions remain with the relevant authorities.</Notice>
         </div>
       </Container>

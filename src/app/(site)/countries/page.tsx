@@ -30,6 +30,7 @@ export default async function CountriesPage() {
             );
           })}
         </ul>
+        <p className="mt-10 text-center text-sm text-muted">Looking for easier-entry options? See <Link href="/destinations" className="font-semibold underline">e-visa and visa-free destinations</Link>.</p>
       </Container>
       <FinalCta />
     </>

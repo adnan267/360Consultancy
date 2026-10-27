@@ -1,3 +1,4 @@
+import { getCountryContent } from "@/data/countries";
 import { SEED_COUNTRIES, SEED_SERVICES } from "@/data/seed";
 import { getRepo, isDatabaseConfigured } from "./repo";
 import { SEED_SCHOLARSHIPS } from "@/data/scholarships";
@@ -30,8 +31,14 @@ export async function getPublicCountries(): Promise<Country[]> {
   return SEED_COUNTRIES.filter((c) => c.is_active).sort((a, b) => a.sort_order - b.sort_order);
 }
 
+/** Core study/work/visit destinations (the e-visa / visa-free directory is listed separately). */
 export async function getDestinationCountries(): Promise<Country[]> {
-  return (await getPublicCountries()).filter((c) => c.slug !== "other");
+  return (await getPublicCountries()).filter((c) => c.slug !== "other" && !getCountryContent(c.slug)?.entry);
+}
+
+/** E-visa or visa-free / ETA directory countries. */
+export async function getDirectoryCountries(entry: "evisa" | "visa-free"): Promise<Country[]> {
+  return (await getPublicCountries()).filter((c) => getCountryContent(c.slug)?.entry === entry);
 }
 
 /** Published scholarships only. Falls back to built-in verified seed records. */

@@ -39,7 +39,7 @@ export default async function PricingPage() {
         </section>
 
         <Notice tone="warn" title="Fees we do not charge or control">Government, embassy, biometric, courier and university application fees are set by those organisations and paid by you directly to them. They are never part of our fee. Paying us does not guarantee a visa, admission or scholarship.</Notice>
-        <p className="text-sm text-muted">Payments are currently accepted by bank transfer and confirmed only after we verify them in our bank records. See our <a className="font-semibold underline" href="/refund-policy">Refund &amp; Cancellation Policy</a>.</p>
+        <p className="text-sm text-muted">Each step is paid online before it begins (cryptocurrency such as USDT via our payment partner) and is confirmed automatically once the payment completes. See our <a className="font-semibold underline" href="/refund-policy">Refund &amp; Cancellation Policy</a>.</p>
       </Container>
       <FinalCta />
     </>

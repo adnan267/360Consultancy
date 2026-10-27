@@ -13,7 +13,7 @@ export default function Terms() {
       <h2>3. Booking requests</h2>
       <p>Submitting the booking form creates a request only. A booking is confirmed only when we accept it, you pay the agreed fee and we verify the payment against our bank account records.</p>
       <h2>4. Fees and payment</h2>
-      <p>Our fee covers our consultancy service only. Government, embassy, biometric and courier fees are separate and are paid directly to the relevant authority. Payment is by bank transfer using the instructions we send you, quoting your booking reference.</p>
+      <p>Our fee covers our consultancy service only. Government, embassy, biometric and courier fees are separate and are paid directly to the relevant authority. Each step is paid online in your client portal before it begins; work on a step starts only after its payment is confirmed.</p>
       <h2>5. Your responsibilities</h2>
       <p>You must give accurate information and remain responsible for the accuracy and completeness of any application you submit.</p>
       <h2>6. Information on this website</h2>

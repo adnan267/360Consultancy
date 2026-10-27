@@ -9,7 +9,7 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How do I pay?",
-    a: "Initially by bank transfer. After we accept your request we email the account details and your booking reference. Your booking is confirmed only after we verify the payment in our bank account records.",
+    a: "Online, in your client portal, before each step begins. You choose a cryptocurrency (for example USDT) on our secure payment partner page; your step opens automatically once the payment is confirmed. Government and embassy fees are paid directly to the authority.",
   },
   {
     q: "Are government and embassy fees included?",
@@ -36,6 +36,6 @@ export const FAQS: { q: string; a: string }[] = [
 export const PROCESS_STEPS = [
   { title: "Tell us about your goal", body: "Share where you want to go and why — travel, study or work — through the booking form." },
   { title: "Choose a suitable service", body: "Pick the consultation or assistance service that fits your situation and preferred time." },
-  { title: "Review fee and payment instructions", body: "We confirm the agreed fee and send bank-transfer instructions with your booking reference." },
+  { title: "Review fee and payment instructions", body: "You pay the fee for the step online in your client portal; the step starts once the payment is confirmed." },
   { title: "Receive confirmation and your service", body: "Once your payment is verified we confirm your booking and deliver the agreed consultancy service." },
 ];

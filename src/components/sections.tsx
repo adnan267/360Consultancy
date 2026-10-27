@@ -2,6 +2,7 @@ import { ArrowRight, Briefcase, Check, Clock, ExternalLink, FileCheck2, Graduati
 import Link from "next/link";
 import { FAQS, PROCESS_STEPS } from "@/data/faq";
 import { COUNTRY_CONTENT } from "@/data/countries";
+import { CalendarDays, Compass, MoonStar } from "lucide-react";
 import { servicesEnabled } from "@/lib/env";
 import { Flag } from "./Flag";
 import { formatPkr } from "@/lib/pricing";
@@ -359,3 +360,77 @@ export function IncludedList({ title, items, tone }: { title: string; items: str
 }
 
 export { Badge };
+
+/** "Find your visa options" band: shown under the hero and again under the services. */
+export function FindOptionsBand({ className }: { className?: string }) {
+  const chips = [
+    { href: "/wizard?purpose=study", label: "Study" },
+    { href: "/wizard?purpose=work", label: "Work" },
+    { href: "/wizard?purpose=visit", label: "Visit" },
+    { href: "/destinations", label: "E-visa & visa-free" },
+    { href: "/umrah", label: "Umrah" },
+  ];
+  return (
+    <section aria-labelledby="find-options" className={cx("bg-navy-900 text-white", className)}>
+      <Container className="flex flex-col items-start gap-6 py-10 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-xl">
+          <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gold-300"><Compass className="size-4" aria-hidden /> Find visa options</p>
+          <h2 id="find-options" className="mt-2 text-2xl font-extrabold sm:text-3xl">Not sure which visa or destination fits you?</h2>
+          <p className="mt-2 text-navy-100">Answer a few quick questions and see the guidance, services and official links that match your goal. It is not an eligibility decision.</p>
+        </div>
+        <div className="w-full lg:w-auto">
+          <div className="flex flex-wrap gap-2">
+            {chips.map((c) => <Link key={c.href} href={c.href} className="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">{c.label}</Link>)}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <ButtonLink href="/wizard">Find Your Visa Options <ArrowRight className="size-4" /></ButtonLink>
+            <ButtonLink href="/book" variant="outline-light"><CalendarDays className="size-4" aria-hidden /> Book a Consultation</ButtonLink>
+          </div>
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+export function DirectoryTeaser({ evisa, visaFree }: { evisa: Country[]; visaFree: Country[] }) {
+  const list = [...evisa, ...visaFree].slice(0, 12);
+  return (
+    <Section tone="mist" className="!py-12 sm:!py-16">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeading eyebrow="Easy-entry destinations" title="E-visa and visa-free destinations" intro="Destinations that are reported to offer online e-visas, visa-free, on-arrival or electronic-authorisation entry to Pakistani passport holders. Rules change, so each page links to the official source." />
+        <Link href="/destinations" className="inline-flex items-center gap-2 text-sm font-bold text-navy-700 hover:text-navy-900">See all <ArrowRight className="size-4" /></Link>
+      </div>
+      <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        {list.map((c) => (
+          <li key={c.id}>
+            <Link href={`/countries/${c.slug}`} className="flex h-full flex-col items-center gap-2 rounded-xl bg-white px-3 py-4 text-center shadow-card ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-gold-500">
+              <Flag code={flagOf(c.slug) ?? ""} label={c.name} className="text-4xl" />
+              <span className="text-sm font-bold text-navy-900">{c.name}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+export function SpiritualTeaser() {
+  return (
+    <Section className="!py-12 sm:!py-16">
+      <div className="grid gap-5 md:grid-cols-2">
+        <Card className="h-full">
+          <MoonStar aria-hidden className="size-8 text-gold-600" />
+          <h3 className="mt-3 text-xl font-extrabold text-navy-900">Umrah packages</h3>
+          <p className="mt-2 text-muted">Plan your Umrah with clear steps, documents and approved package options.</p>
+          <ButtonLink href="/umrah" variant="secondary" className="mt-5">Umrah packages <ArrowRight className="size-4" /></ButtonLink>
+        </Card>
+        <Card className="h-full">
+          <Compass aria-hidden className="size-8 text-gold-600" />
+          <h3 className="mt-3 text-xl font-extrabold text-navy-900">Holy &amp; spiritual tours</h3>
+          <p className="mt-2 text-muted">Planning support for ziyarat and spiritual journeys, with official requirements explained.</p>
+          <ButtonLink href="/spiritual-tours" variant="secondary" className="mt-5">Spiritual tours <ArrowRight className="size-4" /></ButtonLink>
+        </Card>
+      </div>
+    </Section>
+  );
+}

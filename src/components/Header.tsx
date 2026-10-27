@@ -18,12 +18,20 @@ const COUNTRY_MENU = [
   ["united-states", "United States"], ["united-kingdom", "United Kingdom"], ["canada", "Canada"], ["australia", "Australia"], ["serbia", "Serbia"], ["mexico", "Mexico"], ["china", "China"],
 ].map(([slug, label]) => ({ href: `/countries/${slug}`, label }));
 
+const UMRAH_MENU = [
+  { href: "/umrah", label: "Umrah packages" },
+  { href: "/spiritual-tours", label: "Holy & spiritual tours" },
+  { href: "/destinations", label: "E-visa & visa-free" },
+];
+
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/wizard", label: "Find Visa Options" },
   { href: "/services", label: "Visa Services" },
   { href: "/study-abroad", label: "Study Abroad" },
   { href: "/countries", label: "Countries" },
+  { href: "/destinations", label: "E-visa & Visa-free" },
+  { href: "/umrah", label: "Umrah & Tours" },
   { href: "/scholarships", label: "Scholarships" },
   { href: "/tools", label: "Tools" },
   { href: "/how-it-works", label: "How It Works" },
@@ -62,6 +70,7 @@ export function Header({ portal = false }: { portal?: boolean }) {
             { href: "/wizard", label: "Find Visa Options" },
             { href: "/services", label: "Services", menu: SERVICE_MENU },
             { href: "/countries", label: "Countries", menu: COUNTRY_MENU },
+            { href: "/umrah", label: "Umrah", menu: UMRAH_MENU },
             { href: "/scholarships", label: "Scholarships" },
             { href: "/tools", label: "Tools" },
             { href: "/about", label: "About Us" },
