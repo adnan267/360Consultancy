@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   async redirects() {
     return [
-      { source: "/destinations", destination: "/countries", permanent: true },
+      { source: "/umrah", destination: "/spiritual-tours", permanent: true },
       { source: "/destinations/:slug", destination: "/countries/:slug", permanent: true },
       { source: "/assessment", destination: "/wizard", permanent: true },
       { source: "/privacy-policy", destination: "/privacy", permanent: true },

@@ -2,7 +2,7 @@ import { ArrowRight, Briefcase, Check, Clock, ExternalLink, FileCheck2, Graduati
 import Link from "next/link";
 import { FAQS, PROCESS_STEPS } from "@/data/faq";
 import { COUNTRY_CONTENT } from "@/data/countries";
-import { CalendarDays, Compass, MoonStar } from "lucide-react";
+import { CalendarDays, Compass } from "lucide-react";
 import { servicesEnabled } from "@/lib/env";
 import { Flag } from "./Flag";
 import { formatPkr } from "@/lib/pricing";
@@ -368,7 +368,7 @@ export function FindOptionsBand({ className }: { className?: string }) {
     { href: "/wizard?purpose=work", label: "Work" },
     { href: "/wizard?purpose=visit", label: "Visit" },
     { href: "/destinations", label: "E-visa & visa-free" },
-    { href: "/umrah", label: "Umrah" },
+    { href: "/spiritual-tours", label: "Holy tours" },
   ];
   return (
     <section aria-labelledby="find-options" className={cx("bg-navy-900 text-white", className)}>
@@ -418,12 +418,6 @@ export function SpiritualTeaser() {
   return (
     <Section className="!py-12 sm:!py-16">
       <div className="grid gap-5 md:grid-cols-2">
-        <Card className="h-full">
-          <MoonStar aria-hidden className="size-8 text-gold-600" />
-          <h3 className="mt-3 text-xl font-extrabold text-navy-900">Umrah packages</h3>
-          <p className="mt-2 text-muted">Plan your Umrah with clear steps, documents and approved package options.</p>
-          <ButtonLink href="/umrah" variant="secondary" className="mt-5">Umrah packages <ArrowRight className="size-4" /></ButtonLink>
-        </Card>
         <Card className="h-full">
           <Compass aria-hidden className="size-8 text-gold-600" />
           <h3 className="mt-3 text-xl font-extrabold text-navy-900">Holy &amp; spiritual tours</h3>

@@ -9,7 +9,7 @@ export const revalidate = 300;
 export const metadata: Metadata = { title: "Holy & Spiritual Tours", description: "Planning support for religious and spiritual journeys, with official requirements explained.", alternates: { canonical: "/spiritual-tours" } };
 
 const PLACES = [
-  ["Makkah and Madinah", "Umrah and ziyarat of the holy places in Saudi Arabia."],
+  ["Makkah and Madinah", "Ziyarat of the holy places in Saudi Arabia, subject to current official travel requirements."],
   ["Iraq", "Ziyarat of the holy shrines, subject to current official travel requirements."],
   ["Iran", "Ziyarat and spiritual travel, subject to current official travel requirements."],
   ["Türkiye and Jordan", "Historic Islamic and spiritual sites and heritage."],
@@ -21,7 +21,7 @@ export default async function SpiritualToursPage() {
   return (
     <>
       <PageHero eyebrow="Spiritual tours" title="Holy and spiritual tour planning" intro="Plan a meaningful journey with clear documents, timing and official requirements.">
-        <div className="flex flex-wrap gap-3"><ButtonLink href="/book">Book a consultation</ButtonLink><ButtonLink href="/umrah" variant="outline-light">Umrah packages</ButtonLink></div>
+        <div className="flex flex-wrap gap-3"><ButtonLink href="/book">Book a consultation</ButtonLink>{wa && <ButtonLink href={wa} variant="outline-light">Ask on WhatsApp</ButtonLink>}</div>
       </PageHero>
       <Container className="space-y-14 py-14">
         <section aria-labelledby="places">
