@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { BOOKING_STATUS_LABEL, LEAD_STATUSES, type BookingStatus, type LeadStatus, type PaymentStatus, type Role } from "@/lib/types";
 import { BOOKING_TRANSITIONS } from "@/lib/status";
@@ -222,5 +222,99 @@ export function LeadStatusSelect({ id, status }: { id: string; status: LeadStatu
       </select>
       {err && <p className="text-xs font-semibold text-red-700">{err}</p>}
     </div>
+  );
+}
+
+export function SettingsForm({ initial }: { initial: { seo_title: string; seo_description: string; mail_from: string; notify_emails: string[] } }) {
+  const router = useRouter();
+  const [title, setTitle] = useState(initial.seo_title);
+  const [desc, setDesc] = useState(initial.seo_description);
+  const [from, setFrom] = useState(initial.mail_from);
+  const [emails, setEmails] = useState<string[]>(initial.notify_emails);
+  const [draft, setDraft] = useState("");
+  const [draftErr, setDraftErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  function addEmail() {
+    const e = draft.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setDraftErr("Enter a valid email address"); return; }
+    if (emails.includes(e)) { setDraftErr("Already in the list"); return; }
+    if (emails.length >= 10) { setDraftErr("Maximum 10 addresses"); return; }
+    setEmails([...emails, e]); setDraft(""); setDraftErr(null);
+  }
+
+  return (
+    <form
+      className="space-y-8"
+      onSubmit={async (ev) => {
+        ev.preventDefault();
+        setBusy(true); setMsg(null);
+        const r = await call("/api/admin/settings", "PATCH", { seo_title: title, seo_description: desc, mail_from: from, notify_emails: emails });
+        setBusy(false);
+        if (r.ok) { setMsg({ tone: "success", text: "Saved. Changes appear on the website shortly." }); router.refresh(); } else setMsg({ tone: "error", text: r.error ?? "Failed" });
+      }}
+    >
+      {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+
+      <section className="space-y-4 rounded-2xl border border-navy-100 bg-white p-5">
+        <h2 className="text-lg font-bold text-navy-900">Website SEO (meta)</h2>
+        <div>
+          <label htmlFor="seo_title" className="mb-1 block text-sm font-semibold">Meta title</label>
+          <input id="seo_title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={70} required className={input} />
+          <p className="mt-1 text-xs text-muted">{title.length}/70 characters. Shown in Google results and the browser tab (best under 60).</p>
+        </div>
+        <div>
+          <label htmlFor="seo_desc" className="mb-1 block text-sm font-semibold">Meta description</label>
+          <textarea id="seo_desc" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={200} rows={3} required className={input} />
+          <p className="mt-1 text-xs text-muted">{desc.length}/200 characters. The short summary under the title in search results (best 120–160).</p>
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-2xl border border-navy-100 bg-white p-5">
+        <h2 className="text-lg font-bold text-navy-900">Email</h2>
+        <div>
+          <label htmlFor="mail_from" className="mb-1 block text-sm font-semibold">Sending address (From)</label>
+          <input id="mail_from" type="email" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="info@360consultancy.pk" className={input} />
+          <p className="mt-1 text-xs text-muted">Emails to customers are sent from this address. It must belong to a domain verified with your email provider. Leave empty to use the server default.</p>
+        </div>
+        <div>
+          <p className="mb-1 block text-sm font-semibold">Receiving addresses (admin alerts)</p>
+          <p className="mb-2 text-xs text-muted">These addresses get an email for every new booking, lead and client case.</p>
+          {emails.length === 0 ? <p className="mb-2 text-sm text-muted">No addresses added.</p> : (
+            <ul className="mb-3 space-y-2">
+              {emails.map((e) => (
+                <li key={e} className="flex items-center justify-between gap-3 rounded-lg border border-navy-100 bg-mist px-3 py-2 text-sm">
+                  <span className="break-all">{e}</span>
+                  <button type="button" onClick={() => setEmails(emails.filter((x) => x !== e))} className="shrink-0 font-semibold text-red-700 hover:underline" aria-label={`Remove ${e}`}>Remove</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex gap-2">
+            <input aria-label="New receiving email" type="email" value={draft} onChange={(e) => { setDraft(e.target.value); setDraftErr(null); }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addEmail(); } }} placeholder="name@example.com" className={input} />
+            <Button type="button" variant="dark" onClick={addEmail}>Add</Button>
+          </div>
+          {draftErr && <p className="mt-1 text-sm font-semibold text-red-700">{draftErr}</p>}
+        </div>
+      </section>
+
+      <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save settings"}</Button>
+    </form>
+  );
+}
+
+/** Sidebar link with an active state. */
+export function AdminNavLink({ href, children, exact }: { href: string; children: React.ReactNode; exact?: boolean }) {
+  const path = usePathname();
+  const active = exact ? path === href : path === href || path.startsWith(`${href}/`);
+  return (
+    <a
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition ${active ? "bg-white/15 text-white" : "text-navy-100 hover:bg-white/10 hover:text-white"}`}
+    >
+      {children}
+    </a>
   );
 }

@@ -38,10 +38,11 @@ export type Permission =
   | "lead:view"
   | "lead:manage"
   | "case:view"
-  | "case:manage";
+  | "case:manage"
+  | "settings:manage";
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  admin: ["booking:view", "booking:note", "booking:status", "payment:verify", "service:manage", "export:csv", "audit:view", "lead:view", "lead:manage", "case:view", "case:manage"],
+  admin: ["booking:view", "booking:note", "booking:status", "payment:verify", "service:manage", "export:csv", "audit:view", "lead:view", "lead:manage", "case:view", "case:manage", "settings:manage"],
   staff: ["booking:view", "booking:note", "booking:status", "lead:view", "lead:manage", "case:view", "case:manage"],
 };
 

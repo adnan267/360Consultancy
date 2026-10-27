@@ -1,4 +1,4 @@
-import { sendNotification, type NotificationContext, type NotificationKind } from "./email";
+import { notifyAdmins, sendNotification, type NotificationContext, type NotificationKind } from "./email";
 import { servicesEnabled } from "./env";
 import { calculatePayable } from "./pricing";
 import { generateBookingReference } from "./reference";
@@ -90,6 +90,8 @@ export async function createBookingRequest(input: unknown, ctx: { ip: string }):
     to_value: booking.status,
     meta: { feePkr: booking.fee_pkr, service: service.slug, country: country.slug },
   });
+
+  await notifyAdmins(`New booking request ${booking.reference}`, `${booking.full_name} requested "${service.title}" (${country.slug}). Reference: ${booking.reference}.`);
 
   await notify(booking.id, "booking_received", {
     reference: booking.reference,

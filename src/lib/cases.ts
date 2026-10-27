@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { hashPassword, verifyPassword } from "./auth";
 import type { Result } from "./bookings";
 import { CASE_TRANSITIONS, FINAL_STATUSES, NEXT_AFTER_PAYMENT, PAYING_STAGE, UPLOADS_OPEN, canTransitionCase } from "./case-status";
+import { notifyAdmins } from "./email";
 import { portalEnabled } from "./env";
 import { generateCaseReference } from "./reference";
 import { getRepo, isDatabaseConfigured } from "./repo";
@@ -89,6 +90,7 @@ export async function createCase(clientId: string, input: unknown): Promise<Resu
     try {
       const d = await repo.insertCase({ reference: generateCaseReference(), client_id: clientId, country_id: country.id, purpose: p.data.purpose, intake_amount_pkr: intake.fee_pkr });
       await repo.appendAudit({ booking_id: null, case_id: d.case.id, actor_id: clientId, actor_label: client.email, action: "case_created", from_value: null, to_value: d.case.status, meta: { country: country.slug, purpose: p.data.purpose, intakeFeePkr: intake.fee_pkr } });
+      await notifyAdmins(`New case ${d.case.reference}`, `${client.email} opened a new ${p.data.purpose} case for ${country.slug}. Reference: ${d.case.reference}.`);
       return { ok: true, caseId: d.case.id, reference: d.case.reference };
     } catch (e) {
       if (!(e instanceof DuplicateReferenceError)) throw e;

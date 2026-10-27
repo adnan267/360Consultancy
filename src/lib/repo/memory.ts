@@ -323,6 +323,14 @@ export class MemoryRepo implements Repo {
     if (a) a.password_hash = passwordHash;
   }
 
+  settings: Record<string, unknown> = {};
+  async getSettings() {
+    return { ...this.settings };
+  }
+  async setSettings(values: Record<string, unknown>) {
+    Object.assign(this.settings, values);
+  }
+
   async hitRateLimit(key: string, limit: number, windowSeconds: number) {
     const now = Date.now();
     const cur = this.limits.get(key);

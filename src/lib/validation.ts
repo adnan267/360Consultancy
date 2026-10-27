@@ -136,3 +136,15 @@ export const changePasswordSchema = z.strictObject({
   current_password: z.string().min(1).max(200),
   new_password: z.string().min(12, "Use at least 12 characters").max(200),
 });
+
+// ── Site settings (admin-editable) ──────────────────────────────────────────
+const plainEmail = z.string().trim().toLowerCase().max(254).pipe(z.email());
+export const settingsPatchSchema = z.strictObject({
+  seo_title: z.string().trim().max(70).optional(),
+  seo_description: z.string().trim().max(200).optional(),
+  /** Address emails are sent FROM. Empty = fall back to EMAIL_FROM env. Must belong to a domain verified with the email provider. */
+  mail_from: z.union([z.literal(""), plainEmail]).optional(),
+  /** Addresses that RECEIVE admin alerts (new bookings, leads, cases). */
+  notify_emails: z.array(plainEmail).max(10).transform((a) => [...new Set(a)]).optional(),
+});
+export type SettingsPatch = z.infer<typeof settingsPatchSchema>;

@@ -3,24 +3,28 @@ import "flag-icons/css/flag-icons.min.css";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { siteUrl } from "@/lib/env";
+import { getSiteSettings } from "@/lib/settings";
 import { site } from "@/lib/site";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl()),
-  title: { default: `${site.name} — Visa guidance you can understand`, template: `%s | ${site.name}` },
-  description: site.description,
-  applicationName: site.name,
-  openGraph: {
-    type: "website",
-    siteName: site.name,
-    title: `${site.name} — Your Global Journey Starts With the Right Guidance`,
-    description: site.description,
-    url: siteUrl(),
-    images: [{ url: "/brand/logo-full.png", width: 1400, height: 726, alt: `${site.name} logo` }],
-  },
-  twitter: { card: "summary_large_image" },
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { seo_title, seo_description } = await getSiteSettings();
+  return {
+    metadataBase: new URL(siteUrl()),
+    title: { default: seo_title, template: `%s | ${site.name}` },
+    description: seo_description,
+    applicationName: site.name,
+    openGraph: {
+      type: "website",
+      siteName: site.name,
+      title: seo_title,
+      description: seo_description,
+      url: siteUrl(),
+      images: [{ url: "/brand/logo-full.png", width: 1400, height: 726, alt: `${site.name} logo` }],
+    },
+    twitter: { card: "summary_large_image" },
+    alternates: { canonical: "/" },
+  };
+}
 
 export const viewport: Viewport = { themeColor: "#0a1f44", width: "device-width", initialScale: 1 };
 

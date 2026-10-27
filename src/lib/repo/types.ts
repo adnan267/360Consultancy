@@ -159,6 +159,10 @@ export interface Repo {
   recordAdminLogin(id: string): Promise<void>;
   setAdminPassword(id: string, passwordHash: string): Promise<void>;
 
+  /** Raw admin-editable settings rows as key → JSON value. */
+  getSettings(): Promise<Record<string, unknown>>;
+  setSettings(values: Record<string, unknown>, updatedBy: string): Promise<void>;
+
   /** Returns true if the action is allowed, false if the limit is exceeded. */
   hitRateLimit(key: string, limit: number, windowSeconds: number): Promise<boolean>;
 }

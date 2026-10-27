@@ -382,6 +382,18 @@ export class SupabaseRepo implements Repo {
     await db().from("admin_users").update({ last_login_at: new Date().toISOString() }).eq("id", id);
   }
 
+  async getSettings() {
+    const { data, error } = await db().from("site_settings").select("key,value");
+    fail(error, "getSettings");
+    return Object.fromEntries((data ?? []).map((r: { key: string; value: unknown }) => [r.key, r.value]));
+  }
+  async setSettings(values: Record<string, unknown>, updatedBy: string) {
+    const rows = Object.entries(values).map(([key, value]) => ({ key, value, updated_at: new Date().toISOString(), updated_by: updatedBy }));
+    if (rows.length === 0) return;
+    const { error } = await db().from("site_settings").upsert(rows, { onConflict: "key" });
+    fail(error, "setSettings");
+  }
+
   async hitRateLimit(key: string, limit: number, windowSeconds: number) {
     const { data, error } = await db().rpc("rate_limit_hit", { p_key: key, p_limit: limit, p_window_seconds: windowSeconds });
     if (error) {

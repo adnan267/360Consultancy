@@ -1,3 +1,4 @@
+import { notifyAdmins } from "./email";
 import { leadsEnabled } from "./env";
 import { getRepo, isDatabaseConfigured } from "./repo";
 import { leadRequestSchema, suggest } from "./wizard";
@@ -35,5 +36,6 @@ export async function createLead(input: unknown, ctx: { ip: string }): Promise<R
     answers,
     suggested_services: s.serviceSlugs,
   });
+  await notifyAdmins("New lead from the website", `${contact.name} saved their details (${answers.purpose} → ${answers.destination}). View it under Leads in the admin panel.`);
   return { ok: true, suggestedServices: s.serviceSlugs };
 }

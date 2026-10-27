@@ -1,8 +1,11 @@
 import { bankDetails, siteUrl } from "./env";
 import { formatPkr } from "./pricing";
+import { getSiteSettings } from "./settings";
 import { BOOKING_STATUS_LABEL, type BookingStatus } from "./types";
 
 export interface EmailMessage {
+  /** Optional sender override (from admin settings). Falls back to EMAIL_FROM. */
+  from?: string;
   to: string;
   subject: string;
   text: string;
@@ -29,11 +32,13 @@ class ResendProvider implements EmailProvider {
   readonly name = "resend";
   constructor(private apiKey: string, private from: string) {}
   async send(msg: EmailMessage): Promise<SendResult> {
+    const from = msg.from || this.from;
+    if (!from) return { sent: false, reason: "No sender address configured" };
     try {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: this.from, to: [msg.to], subject: msg.subject, text: msg.text }),
+        body: JSON.stringify({ from, to: [msg.to], subject: msg.subject, text: msg.text }),
         signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) return { sent: false, reason: `Provider responded ${res.status}` };
@@ -54,7 +59,8 @@ export function getEmailProvider(): EmailProvider {
   const kind = process.env.EMAIL_PROVIDER;
   const key = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
-  if (kind === "resend" && key && from) return new ResendProvider(key, from);
+  // A sender may also come from admin settings at send time, so EMAIL_FROM is optional here.
+  if (kind === "resend" && key) return new ResendProvider(key, from ?? "");
   return new DisabledProvider();
 }
 
@@ -138,9 +144,26 @@ export function buildMessage(kind: NotificationKind, ctx: NotificationContext): 
 export async function sendNotification(kind: NotificationKind, ctx: NotificationContext): Promise<SendResult> {
   const msg = buildMessage(kind, ctx);
   if ("error" in msg) return { sent: false, reason: msg.error };
+  return deliver(msg);
+}
+
+async function deliver(msg: EmailMessage): Promise<SendResult> {
   try {
-    return await getEmailProvider().send(msg);
+    const settings = await getSiteSettings();
+    return await getEmailProvider().send(settings.mail_from ? { ...msg, from: settings.mail_from } : msg);
   } catch (e) {
     return { sent: false, reason: e instanceof Error ? e.message : "send failed" };
+  }
+}
+
+/** Alerts every configured receiving address (admin settings + ADMIN_NOTIFY_EMAIL). Never throws, never blocks the caller's result. */
+export async function notifyAdmins(subject: string, text: string): Promise<void> {
+  try {
+    const settings = await getSiteSettings();
+    const env = (process.env.ADMIN_NOTIFY_EMAIL ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const recipients = [...new Set([...settings.notify_emails, ...env])];
+    await Promise.all(recipients.map((to) => deliver({ to, subject, text: `${text}\n\n—\n${siteUrl()}/admin` })));
+  } catch (e) {
+    console.error("[notifyAdmins]", e);
   }
 }
