@@ -20,6 +20,7 @@ const COUNTRY_MENU = [
 
 const NAV = [
   { href: "/", label: "Home" },
+  { href: "/wizard", label: "Find Visa Options" },
   { href: "/services", label: "Visa Services" },
   { href: "/study-abroad", label: "Study Abroad" },
   { href: "/countries", label: "Countries" },
@@ -58,6 +59,7 @@ export function Header({ portal = false }: { portal?: boolean }) {
         <nav aria-label="Main" className="hidden items-center gap-1 xl:flex">
           {[
             { href: "/", label: "Home" },
+            { href: "/wizard", label: "Find Visa Options" },
             { href: "/services", label: "Services", menu: SERVICE_MENU },
             { href: "/countries", label: "Countries", menu: COUNTRY_MENU },
             { href: "/scholarships", label: "Scholarships" },
