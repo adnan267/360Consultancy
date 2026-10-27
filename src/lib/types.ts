@@ -237,11 +237,23 @@ export const CASE_STAGE_LABEL: Record<CaseStage, string> = { intake: "Starting f
 export const CASE_PURPOSES = ["study", "work", "visit", "other"] as const;
 export type CasePurpose = (typeof CASE_PURPOSES)[number];
 
-export const DOC_TYPES = ["passport", "photo", "transcript", "certificate", "experience_letter", "financial", "language_test", "admission_letter", "other"] as const;
+export const DOC_TYPES = [
+  "passport", "photo", "cnic", "transcript", "certificate", "experience_letter", "cv", "financial", "bank_statement",
+  "income_tax_return", "language_test", "admission_letter", "family_registration", "marriage_registration",
+  "employer_letter", "invitation_letter", "hotel_booking", "flight_booking", "travel_history", "visa_refusal",
+  "sponsor_document", "other",
+] as const;
 export type DocType = (typeof DOC_TYPES)[number];
 export const DOC_TYPE_LABEL: Record<DocType, string> = {
-  passport: "Passport (bio page)", photo: "Photograph", transcript: "Academic transcript", certificate: "Certificate / degree",
-  experience_letter: "Experience letter", financial: "Financial evidence", language_test: "Language test result", admission_letter: "Admission / offer letter", other: "Other",
+  passport: "Passport (colour copy, clear)", photo: "Photograph (white background, no glasses)", cnic: "CNIC (valid, both sides)",
+  transcript: "Academic transcript", certificate: "Certificate / degree", experience_letter: "Experience letter", cv: "CV / resume",
+  financial: "Financial evidence (income, savings, property)", bank_statement: "Bank statements (6 months) / account maintenance certificate",
+  income_tax_return: "Income tax return (3 years)", language_test: "Language test result", admission_letter: "Admission / offer letter",
+  family_registration: "Family Registration Certificate (FRC)", marriage_registration: "Marriage Registration Certificate (MRC)",
+  employer_letter: "Company letter head / NOC / request letter", invitation_letter: "Invitation letter (from the host)",
+  hotel_booking: "Stay details (hotel bookings)", flight_booking: "Travel dates / flight tickets or schedule",
+  travel_history: "Travel history (detailed)", visa_refusal: "Visa refusal details (any country)",
+  sponsor_document: "Sponsor documents (CNIC, NTN, chamber certificate, undertaking, etc.)", other: "Other",
 };
 export type DocStatus = "uploaded" | "accepted" | "needs_fix";
 
