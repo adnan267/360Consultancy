@@ -368,7 +368,7 @@ export async function startOnlinePayment(clientId: string, caseId: string, stage
     priceAmount: price,
     priceCurrency: cfg.priceCurrency,
     payCurrency: cfg.payCurrency,
-    callbackUrl: `${siteUrl()}/api/webhooks/nowpayments`,
+    callbackUrl: process.env.NOWPAYMENTS_IPN_URL?.trim() || `${siteUrl()}/api/webhooks/nowpayments`,
     successUrl: `${siteUrl()}/portal/cases/${caseId}?paid=1`,
     cancelUrl: `${siteUrl()}/portal/cases/${caseId}`,
   });
