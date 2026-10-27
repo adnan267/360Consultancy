@@ -8,7 +8,7 @@ import {
   type StepId, type WizardDraft,
 } from "@/lib/wizard";
 import { Flag } from "./Flag";
-import { Button, Card, Notice, cx } from "./ui";
+import { Button, Card, Notice, buttonClass, cx } from "./ui";
 
 interface Props {
   leadsEnabled: boolean;
@@ -214,6 +214,15 @@ export function Wizard({ leadsEnabled, countries, services }: Props) {
                 {sug.links.map((l) => <li key={l.href}><Link href={l.href} className="font-semibold text-navy-700 underline underline-offset-4">{l.label} →</Link></li>)}
               </ul>
               <div className="mt-4 space-y-2">{sug.notes.map((n) => <p key={n} className="text-xs leading-relaxed text-muted">{n}</p>)}</div>
+            </div>
+
+            <div className="rounded-xl border-2 border-gold-500 bg-white p-5">
+              <h3 className="text-lg font-extrabold text-navy-900">Ready to start with us?</h3>
+              <p className="mt-1 text-sm text-muted">Create your free client account and start a case. You pay the starting fee online first; each later step is also paid before it begins.</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link href="/portal/register" className={buttonClass("primary")}>Create account &amp; start</Link>
+                <Link href="/portal/login" className={buttonClass("secondary")}>I already have an account</Link>
+              </div>
             </div>
 
             {leadsEnabled ? (saved ? (
