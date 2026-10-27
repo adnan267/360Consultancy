@@ -64,7 +64,7 @@ export function nowPaymentsConfig() {
     ipnSecret,
     priceCurrency,
     pkrPerUsd,
-    payCurrency: (process.env.NOWPAYMENTS_PAY_CURRENCY?.trim() ?? "usdttrc20").toLowerCase(),
+    payCurrency: (process.env.NOWPAYMENTS_PAY_CURRENCY?.trim() ?? "").toLowerCase(),
     apiBase: process.env.NOWPAYMENTS_API_BASE?.trim() || "https://api.nowpayments.io",
   };
 }

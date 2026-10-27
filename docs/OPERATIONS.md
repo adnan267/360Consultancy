@@ -47,7 +47,7 @@ Create/reset: `npm run create-admin -- email role`. Roles: `admin` (everything) 
 
 ## NOWPayments (migration 0012)
 1. In the NOWPayments dashboard create an API key and an IPN secret; set the IPN callback to `https://360consultancy.pk/api/webhooks/nowpayments` and add your USDT (TRC20) payout wallet.
-2. Set in Vercel: `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, optionally `NOWPAYMENTS_PRICE_CURRENCY` (`pkr`, or `usd` + `PKR_PER_USD`) and `NOWPAYMENTS_PAY_CURRENCY` (default `usdttrc20`). Redeploy.
+2. Set in Vercel: `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, optionally `NOWPAYMENTS_PRICE_CURRENCY` (`pkr`, or `usd` + `PKR_PER_USD`) and `NOWPAYMENTS_PAY_CURRENCY` (default empty = client chooses the coin). Redeploy.
 3. Clients then see "Pay online" instead of bank details. Status `finished` + matching invoice id, amount and currency verifies the payment automatically (audit actor `provider:nowpayments`); anything else is left for manual review and emailed to admins.
 4. Test with a small real payment first (or NOWPayments sandbox via `NOWPAYMENTS_API_BASE=https://api-sandbox.nowpayments.io`).
 Scope: portal case payments. Consultation bookings still use the manual flow.
