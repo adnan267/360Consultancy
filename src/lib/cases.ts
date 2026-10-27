@@ -2,8 +2,9 @@ import { randomUUID } from "node:crypto";
 import { sendVerificationEmail, verificationRequired } from "./account";
 import { hashPassword, verifyPassword } from "./auth";
 import type { Result } from "./bookings";
-import { CASE_TRANSITIONS, FINAL_STATUSES, NEXT_AFTER_PAYMENT, PAYING_STAGE, UPLOADS_OPEN, canTransitionCase } from "./case-status";
-import { notifyAdmins, sendPlainEmail } from "./email";
+import { CASE_TRANSITIONS, DELIVERABLES_OPEN, FINAL_STATUSES, NEXT_AFTER_PAYMENT, PAYING_STAGE, UPLOADS_OPEN, canTransitionCase } from "./case-status";
+import { notifyAdmins } from "./email";
+import { notifyClient } from "./notifications";
 import { nowPaymentsConfig, portalEnabled, siteUrl } from "./env";
 import { createInvoice, type NowPaymentsIpn } from "./payments/nowpayments";
 import { generateCaseReference } from "./reference";
@@ -11,7 +12,7 @@ import { getRepo, isDatabaseConfigured } from "./repo";
 import { DuplicateEmailError, DuplicateReferenceError } from "./repo/types";
 import { canTransitionPayment } from "./status";
 import { getStorage, isStorageConfigured } from "./storage";
-import { CASE_STATUS_LABEL, type Actor, type Case, type CaseDetail, type CaseDocument, type CasePayment, type CaseStage, type Client } from "./types";
+import { CASE_STATUS_LABEL, type Actor, type Case, type CaseDeliverable, type CaseDetail, type CaseDocument, type CasePayment, type CaseStage, type Client } from "./types";
 import { adminCaseActionSchema, clientCaseActionSchema, clientLoginSchema, clientRegisterSchema, createCaseSchema, uploadMetaSchema, type AdminCaseAction } from "./validation";
 
 const fail = (status: number, error: string, fields?: Record<string, string[]>) => ({ ok: false as const, status, error, fields });
@@ -244,6 +245,54 @@ export async function readDocument(documentId: string, owner: string | "staff"):
   return bytes ? { doc, bytes } : null;
 }
 
+/** Staff attach a final file for the client. The route has already checked the staff permission. */
+export async function uploadDeliverable(actor: { id: string | null; label: string }, caseId: string, file: { name: string; bytes: Uint8Array }): Promise<Result<{ deliverable: CaseDeliverable }>> {
+  if (!isDatabaseConfigured()) return fail(503, "Unavailable");
+  if (!isStorageConfigured()) return fail(503, "Uploads are temporarily unavailable.");
+  const repo = getRepo();
+  const d = await repo.getCaseDetail(caseId);
+  if (!d) return fail(404, "Case not found");
+  if (!DELIVERABLES_OPEN.includes(d.case.status)) return fail(409, "Final files can be added once the review is complete, until the case is handed over.");
+  if (file.bytes.length === 0) return fail(422, "That file is empty.");
+  if (file.bytes.length > MAX_UPLOAD_BYTES) return fail(413, "File is too large. The limit is 4 MB.");
+  if (d.deliverables.length >= 30) return fail(409, "Too many final files on this case.");
+  const kind = sniffMime(file.bytes);
+  if (!kind) return fail(415, "Only PDF, JPG or PNG files are accepted.");
+  const path = `deliverables/${caseId}/${randomUUID()}.${kind.ext}`;
+  const storage = getStorage();
+  await storage.put(path, file.bytes, kind.mime);
+  try {
+    const row = await repo.insertDeliverable({ case_id: caseId, original_name: cleanName(file.name), storage_path: path, mime: kind.mime, size_bytes: file.bytes.length, uploaded_by: actor.id });
+    await audit(d, actor, "deliverable_uploaded", null, row.original_name, { deliverableId: row.id });
+    return { ok: true, deliverable: row };
+  } catch (e) {
+    await storage.remove(path);
+    throw e;
+  }
+}
+
+export async function deleteDeliverable(actor: { id: string | null; label: string }, deliverableId: string): Promise<Result<object>> {
+  const repo = getRepo();
+  const x = await repo.getDeliverable(deliverableId);
+  const d = x ? await repo.getCaseDetail(x.case_id) : null;
+  if (!x || !d) return fail(404, "File not found");
+  if (!DELIVERABLES_OPEN.includes(d.case.status)) return fail(409, "Files cannot be removed after handover.");
+  await repo.deleteDeliverable(x.id);
+  await getStorage().remove(x.storage_path);
+  await audit(d, actor, "deliverable_deleted", x.original_name, null, { deliverableId: x.id });
+  return { ok: true };
+}
+
+/** Authorised read of a deliverable. `owner` = the client id, or "staff" after the route has checked the permission. */
+export async function readDeliverable(id: string, owner: string | "staff"): Promise<{ file: CaseDeliverable; bytes: Uint8Array } | null> {
+  if (!isDatabaseConfigured() || !isStorageConfigured()) return null;
+  const file = await getRepo().getDeliverable(id);
+  if (!file) return null;
+  if (owner !== "staff" && !(await getClientCase(owner, file.case_id))) return null;
+  const bytes = await getStorage().get(file.storage_path);
+  return bytes ? { file, bytes } : null;
+}
+
 // ── admin ───────────────────────────────────────────────────────────────────
 
 /** Actions that touch money need the admin-only payment permission (enforced by the route). */
@@ -280,6 +329,7 @@ export async function applyCaseAdminAction(caseId: string, input: unknown, actor
       const next = NEXT_AFTER_PAYMENT[a.stage];
       if (!(await move(next))) return fail(409, "Payment recorded, but the case changed at the same time. Please refresh and check its status.");
       await audit(d, who, "payment_status_changed", pay.status, "verified", { stage: a.stage, bankReference: a.bankReference, receivedAmountPkr: a.receivedAmountPkr });
+      { const link = `${siteUrl()}/portal/cases/${d.case.id}`; void notifyClient({ clientId: d.client.id, clientEmail: d.client.email, caseId: d.case.id, templateKey: "payment_verified", title: "Payment confirmed", vars: { name: d.client.full_name, reference: d.case.reference, link }, link }); }
       await audit(d, who, "case_status_changed", status, next, { via: `payment_${a.stage}` });
       break;
     }
@@ -334,6 +384,23 @@ export async function applyCaseAdminAction(caseId: string, input: unknown, actor
       break;
     }
 
+    case "complete_case": {
+      if (status !== "review_complete" && status !== "submitted") return fail(409, "A case can be handed over after the review is complete or the file is submitted.");
+      if (d.deliverables.length === 0) return fail(422, "Upload at least one final file for the client before handing over.");
+      if (!(await move("completed", { handover_at: new Date().toISOString(), handover_notes: a.notes ?? null }))) return fail(409, "Case changed. Please refresh.");
+      await audit(d, who, "case_status_changed", status, "completed", { via: "handover", note: a.notes });
+      break;
+    }
+
+    case "record_decision": {
+      // The official decision is its own fact, recorded only from the authority's outcome - never inferred from our work being done.
+      if (status !== "submitted" && status !== "completed") return fail(409, "An official decision can be recorded once the file has been submitted.");
+      if (!d.case.submitted_at) return fail(409, "No submission is recorded for this case, so there is no official decision to record.");
+      if (!(await repo.updateCase(caseId, { decision: a.decision, decision_at: new Date().toISOString(), decision_note: a.note }, status))) return fail(409, "Case changed. Please refresh.");
+      await audit(d, who, "official_decision_recorded", d.case.decision, a.decision, { note: a.note });
+      break;
+    }
+
     case "cancel": {
       if (!(CASE_TRANSITIONS[status] as string[]).includes("cancelled")) return fail(409, "This case is already closed.");
       if (!(await move("cancelled"))) return fail(409, "Case changed. Please refresh.");
@@ -344,15 +411,21 @@ export async function applyCaseAdminAction(caseId: string, input: unknown, actor
   const detail = (await repo.getCaseDetail(caseId))!;
   // Tell the client about real progress (never about internal notes). Best-effort: a failed email never fails the action.
   if (a.action !== "add_note") {
-    void sendPlainEmail(d.client.email, `Update on your case ${d.case.reference}`, `Dear ${d.client.full_name},\n\nThere is an update on your case ${d.case.reference}. Its status is now: ${CASE_STATUS_LABEL[detail.case.status]}.\n\nSign in to your portal to see details and any next steps: ${siteUrl()}/portal/cases/${d.case.id}`).catch(() => {});
+    const link = `${siteUrl()}/portal/cases/${d.case.id}`;
+    const vars = { name: d.client.full_name, reference: d.case.reference, status: CASE_STATUS_LABEL[detail.case.status], link };
+    if (a.action === "complete_case") void notifyClient({ clientId: d.client.id, clientEmail: d.client.email, caseId: d.case.id, templateKey: "deliverables_ready", title: "Your final files are ready", vars, link });
+    else void notifyClient({ clientId: d.client.id, clientEmail: d.client.email, caseId: d.case.id, templateKey: "case_status", title: `Status: ${CASE_STATUS_LABEL[detail.case.status]}`, vars, link });
   }
   return { ok: true, detail };
 }
 
 /** Client chose to pay online: create a NOWPayments invoice for the stage that is currently due. */
-export async function startOnlinePayment(clientId: string, caseId: string, stage: unknown): Promise<Result<{ url: string }>> {
+export const PAYMENT_TERMS_VERSION = "2026-10";
+
+export async function startOnlinePayment(clientId: string, caseId: string, stage: unknown, acknowledged: unknown = false): Promise<Result<{ url: string }>> {
   const g = gate();
   if (g) return g;
+  if (acknowledged !== true) return fail(422, "Please confirm that you have read the proposal and accept the terms before paying.");
   const cfg = nowPaymentsConfig();
   if (!cfg) return fail(503, "Online payment is not available right now.");
   if (stage !== "intake" && stage !== "review" && stage !== "submission") return fail(422, "Invalid request");
@@ -374,7 +447,7 @@ export async function startOnlinePayment(clientId: string, caseId: string, stage
   });
   if ("error" in inv) return fail(502, inv.error);
   await getRepo().updateCasePayment(pay.id, { provider: "nowpayments", provider_ref: inv.id, provider_price: price, provider_currency: cfg.priceCurrency });
-  await audit(d, { id: clientId, label: d.client.email }, "online_payment_started", pay.status, pay.status, { stage, invoiceId: inv.id });
+  await audit(d, { id: clientId, label: d.client.email }, "online_payment_started", pay.status, pay.status, { stage, invoiceId: inv.id, termsAccepted: true, termsVersion: PAYMENT_TERMS_VERSION, amountPkr: pay.amount_pkr });
   return { ok: true, url: inv.url };
 }
 
@@ -422,7 +495,7 @@ export async function applyNowPaymentsIpn(ev: NowPaymentsIpn): Promise<IpnOutcom
   const moved = await repo.updateCase(caseId, { status: next }, d.case.status);
   await audit(d, sys, "payment_status_changed", pay.status, "verified", { stage, providerPaymentId: pid, via: "nowpayments" });
   if (moved) await audit(d, sys, "case_status_changed", d.case.status, next, { via: `payment_${stage}` });
-  void sendPlainEmail(d.client.email, `Payment received for case ${d.case.reference}`, `Dear ${d.client.full_name},\n\nWe have received your online payment for case ${d.case.reference}. Your invoice is available in your portal: ${siteUrl()}/portal/cases/${caseId}\n\n360 Consultancy`).catch(() => {});
+  { const link = `${siteUrl()}/portal/cases/${caseId}`; void notifyClient({ clientId: d.client.id, clientEmail: d.client.email, caseId, templateKey: "payment_verified", title: "Payment confirmed", vars: { name: d.client.full_name, reference: d.case.reference, link }, link }); }
   void notifyAdmins(`Payment received: ${d.case.reference}`, `Case ${d.case.reference} (${stage}) was paid online and verified automatically (NOWPayments ${pid}).`).catch(() => {});
   return "verified";
 }

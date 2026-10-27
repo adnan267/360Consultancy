@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DataRequestForm, NewCaseForm, PortalLogout, ResendVerification } from "@/components/PortalClient";
+import { NotificationCentre } from "@/components/NotificationCentre";
 import { Badge, Card, Container, Notice } from "@/components/ui";
 import { verificationRequired } from "@/lib/account";
 import { getClientSession } from "@/lib/client-auth";
@@ -15,7 +16,7 @@ export default async function PortalHome() {
   const s = await getClientSession();
   if (!s) redirect("/portal/login");
   const repo = getRepo();
-  const [client, cases, countries, intake, review] = await Promise.all([repo.getClientById(s.sub), repo.listCasesForClient(s.sub), repo.listCountries({ activeOnly: true }), repo.getServiceBySlug(INTAKE_SERVICE_SLUG), repo.getServiceBySlug(REVIEW_SERVICE_SLUG)]);
+  const [client, cases, countries, intake, review, notes] = await Promise.all([repo.getClientById(s.sub), repo.listCasesForClient(s.sub), repo.listCountries({ activeOnly: true }), repo.getServiceBySlug(INTAKE_SERVICE_SLUG), repo.getServiceBySlug(REVIEW_SERVICE_SLUG), repo.listNotifications(s.sub, 10)]);
   if (!client) redirect("/portal/login");
   return (
     <Container className="space-y-8 py-12">
@@ -27,6 +28,8 @@ export default async function PortalHome() {
       {verificationRequired() && !client.email_verified_at && (
         <Notice tone="warn" title="Please verify your email">We sent a link to {client.email}. You need to verify it before starting a case. <ResendVerification /></Notice>
       )}
+
+      <NotificationCentre items={notes.map((n) => ({ id: n.id, title: n.title, link: n.link ? new URL(n.link, "https://x.invalid").pathname : null, read: !!n.read_at, at: n.created_at }))} />
 
       <Card>
         <h2 className="font-bold text-navy-900">Start a new case</h2>
@@ -46,7 +49,7 @@ export default async function PortalHome() {
           <ul className="space-y-3">{cases.map((c) => (
             <li key={c.id}><Link href={`/portal/cases/${c.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white p-4 shadow-card transition hover:border-gold-500">
               <span><span className="font-mono font-bold text-navy-900">{c.reference}</span> <span className="text-sm text-muted">· {c.country_name} · {c.purpose}</span></span>
-              <Badge tone={c.status === "submitted" ? "green" : c.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[c.status]}</Badge>
+              <Badge tone={c.status === "submitted" || c.status === "completed" ? "green" : c.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[c.status]}</Badge>
             </Link></li>
           ))}</ul>
         ) : <p className="text-sm text-muted">No cases yet.</p>}

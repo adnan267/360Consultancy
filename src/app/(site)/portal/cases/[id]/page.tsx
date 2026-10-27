@@ -10,17 +10,18 @@ import { getRepo } from "@/lib/repo";
 import { getClientSession } from "@/lib/client-auth";
 import { bankDetails, nowPaymentsConfig } from "@/lib/env";
 import { formatPkr } from "@/lib/pricing";
-import { CASE_STAGE_LABEL, CASE_STATUS_LABEL, DOC_TYPE_LABEL, type CaseStatus } from "@/lib/types";
+import { CASE_STAGE_LABEL, DECISION_LABEL, CASE_STATUS_LABEL, DOC_TYPE_LABEL, type CaseStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 const STEPS: { label: string; done: CaseStatus[] }[] = [
-  { label: "Pay starting fee", done: ["documents_open", "awaiting_review_payment", "in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted"] },
-  { label: "Upload documents", done: ["awaiting_review_payment", "in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted"] },
-  { label: "Pay review fee", done: ["in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted"] },
-  { label: "Document review", done: ["review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted"] },
-  { label: "Accept quote & pay submission fee", done: ["submission_in_progress", "submitted"] },
-  { label: "File submitted", done: ["submitted"] },
+  { label: "Pay starting fee", done: ["documents_open", "awaiting_review_payment", "in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
+  { label: "Upload documents", done: ["awaiting_review_payment", "in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
+  { label: "Pay review fee", done: ["in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
+  { label: "Document review", done: ["review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
+  { label: "Accept quote & pay submission fee", done: ["submission_in_progress", "submitted", "completed"] },
+  { label: "File submitted", done: ["submitted", "completed"] },
+  { label: "Files handed over", done: ["completed"] },
 ];
 
 // Only these events are shown to clients, and never their internal details (staff notes, bank references).
@@ -49,7 +50,7 @@ export default async function PortalCase({ params }: { params: Promise<{ id: str
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="font-mono text-2xl font-extrabold text-navy-900">{c.reference}</h1>
-        <Badge tone={c.status === "submitted" ? "green" : c.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[c.status]}</Badge>
+        <Badge tone={c.status === "submitted" || c.status === "completed" ? "green" : c.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[c.status]}</Badge>
         <span className="text-sm text-muted">{d.country.name} · {c.purpose}</span>
       </div>
 
@@ -66,7 +67,12 @@ export default async function PortalCase({ params }: { params: Promise<{ id: str
           {stage === "submission" && <p className="mt-1 text-sm text-muted">This is the quote you accepted for submitting your file.</p>}
           {nowPaymentsConfig() && pay.status !== "verified" ? (
             <div className="mt-4 space-y-3">
-              <PayOnlineButton caseId={c.id} stage={stage} />
+              <PayOnlineButton caseId={c.id} stage={stage} summary={{
+                service: `${c.purpose[0].toUpperCase() + c.purpose.slice(1)} visa consultancy — ${d.country.name}`,
+                stageLabel: CASE_STAGE_LABEL[stage],
+                amount: formatPkr(pay.amount_pkr),
+                included: stage === "intake" ? "Opening your case and a first assessment of your situation, plus access to secure document upload." : stage === "review" ? "A consultant's review of your documents, written feedback on gaps and corrections, and a quote for the remaining work." : "Preparing and handing over the agreed application file, as set out in the quote you accepted.",
+              }} />
               {pay.status === "under_review" && <Notice tone="info">We are checking a payment on this stage. If you already paid, this page updates automatically once it is confirmed.</Notice>}
             </div>
           ) : pay.status === "under_review" ? (
@@ -132,6 +138,32 @@ export default async function PortalCase({ params }: { params: Promise<{ id: str
         <Notice tone="success" title="Your file has been submitted">
           Submission reference: <span className="font-mono font-bold">{c.submission_reference}</span>{c.submitted_at && <> · {pkt(c.submitted_at)} PKT</>}.{c.submission_notes && <> {c.submission_notes}</>} Decisions are made only by the relevant authority.
         </Notice>
+      )}
+
+      {d.deliverables.length > 0 && (
+        <Card className="border-gold-500">
+          <h2 className="font-bold text-navy-900">Your files</h2>
+          <ul className="mt-3 divide-y divide-line text-sm">{d.deliverables.map((x) => (
+            <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 py-2"><a className="font-semibold text-navy-700 underline underline-offset-4" href={`/api/portal/deliverables/${x.id}`}>{x.original_name}</a><span className="text-xs text-muted">{(x.size_bytes / 1024).toFixed(0)} KB · {pkt(x.uploaded_at)} PKT</span></li>
+          ))}</ul>
+        </Card>
+      )}
+
+      {c.status === "completed" && (
+        <Notice tone="success" title="Our work on this case is complete">
+          Handed over{c.handover_at && <> on {pkt(c.handover_at)} PKT</>}.{c.handover_notes && <span className="mt-1 block whitespace-pre-wrap">{c.handover_notes}</span>}
+        </Notice>
+      )}
+
+      {(c.status === "submitted" || c.status === "completed") && c.submitted_at && (
+        <Card>
+          <h2 className="font-bold text-navy-900">Official visa decision</h2>
+          {c.decision ? (
+            <p className="mt-2 text-sm"><span className="font-bold">{DECISION_LABEL[c.decision]}</span>{c.decision_at && <> · recorded {pkt(c.decision_at)} PKT</>}</p>
+          ) : (
+            <p className="mt-2 text-sm text-muted">No official decision has been recorded yet. The decision is made only by the relevant authority, separately from our work. Message us when you hear the outcome.</p>
+          )}
+        </Card>
       )}
 
       {["awaiting_intake_payment", "awaiting_review_payment", "awaiting_submission_payment"].includes(c.status) && !d.payments.some((p) => p.status === "verified" || p.status === "under_review") && (

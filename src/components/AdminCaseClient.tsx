@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { PAYING_STAGE } from "@/lib/case-status";
-import { CASE_STAGE_LABEL, type CaseStage, type CaseStatus, type DocStatus, type PaymentStatus, type Role } from "@/lib/types";
+import { DELIVERABLES_OPEN, PAYING_STAGE } from "@/lib/case-status";
+import { CASE_STAGE_LABEL, DECISIONS, DECISION_LABEL, type CaseStage, type CaseStatus, type DocStatus, type PaymentStatus, type Role } from "@/lib/types";
 import { Button, Notice } from "./ui";
 
 const input = "block w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-gold-500/60";
@@ -15,6 +15,9 @@ export function CaseAdminActions(props: {
   payments: { stage: CaseStage; status: PaymentStatus; amountPkr: number }[];
   documents: { id: string; name: string; status: DocStatus }[];
   quotePkr: number | null;
+  deliverables: { id: string; name: string }[];
+  decision: string | null;
+  hasSubmission: boolean;
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);
@@ -22,7 +25,7 @@ export function CaseAdminActions(props: {
   const isAdmin = props.role === "admin";
   const stage = PAYING_STAGE[props.status];
   const pay = stage ? props.payments.find((p) => p.stage === stage) : undefined;
-  const final = props.status === "submitted" || props.status === "cancelled";
+  const final = props.status === "completed" || props.status === "cancelled";
 
   async function act(body: unknown, ok: string) {
     setBusy(true); setMsg(null);
@@ -96,6 +99,54 @@ export function CaseAdminActions(props: {
             <input name="sref" required minLength={3} maxLength={120} placeholder="Submission reference" className={input} />
             <input name="snotes" maxLength={1000} placeholder="Notes for the client (optional)" className={input} />
             <Button type="submit" disabled={busy}>Mark as submitted</Button>
+          </form>
+        </section>
+      )}
+
+      {DELIVERABLES_OPEN.includes(props.status) && (
+        <section className="space-y-3">
+          <h3 className="font-bold text-navy-900">Final files for the client</h3>
+          {props.deliverables.length > 0 && (
+            <ul className="divide-y divide-line text-sm">{props.deliverables.map((x) => (
+              <li key={x.id} className="flex items-center justify-between gap-3 py-2">
+                <a className="font-semibold text-navy-700 underline underline-offset-4" href={`/api/admin/deliverables/${x.id}`}>{x.name}</a>
+                <button type="button" disabled={busy} className="text-xs font-semibold text-red-700 underline" onClick={async () => { if (!confirm("Remove this file?")) return; setBusy(true); const r = await fetch(`/api/admin/deliverables/${x.id}`, { method: "DELETE" }); setBusy(false); if (r.ok) router.refresh(); else setMsg({ tone: "error", text: "Could not remove the file." }); }}>Remove</button>
+              </li>
+            ))}</ul>
+          )}
+          <form className="flex flex-wrap items-center gap-2" onSubmit={async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            setBusy(true); setMsg(null);
+            try {
+              const r = await fetch(`/api/admin/cases/${props.caseId}/deliverables`, { method: "POST", body: fd });
+              const data = await r.json().catch(() => ({}));
+              if (r.ok) { setMsg({ tone: "success", text: "File added. The client was emailed." }); e.currentTarget.reset(); router.refresh(); } else setMsg({ tone: "error", text: data?.error ?? `Failed (${r.status})` });
+            } catch { setMsg({ tone: "error", text: "Network error" }); }
+            setBusy(false);
+          }}>
+            <input type="file" name="file" accept="application/pdf,image/jpeg,image/png" required className="text-sm" />
+            <Button type="submit" variant="secondary" disabled={busy}>Upload final file</Button>
+          </form>
+          {(props.status === "review_complete" || props.status === "submitted") && (
+            <form className="space-y-2 rounded-xl border border-line p-4" onSubmit={(e) => { const fd = f(e); if (confirm("Hand over and close this case?")) act({ action: "complete_case", notes: String(fd.get("hn") || "") || undefined }, "Case handed over and completed."); }}>
+              <label className="block text-xs font-semibold" htmlFor="hn">Hand over and close (needs at least one final file). Next-step guidance for the client:</label>
+              <textarea id="hn" name="hn" rows={3} maxLength={2000} className={input} placeholder="Next steps, what to do with the files…" />
+              <Button type="submit" disabled={busy || props.deliverables.length === 0}>Hand over &amp; complete</Button>
+              <p className="text-xs text-muted">Completing our work is separate from the visa decision.</p>
+            </form>
+          )}
+        </section>
+      )}
+
+      {(props.status === "submitted" || props.status === "completed") && props.hasSubmission && (
+        <section>
+          <h3 className="font-bold text-navy-900">Official decision {props.decision ? `(recorded: ${props.decision})` : "(not recorded)"}</h3>
+          <p className="mt-1 text-xs text-muted">Record this only when the authority&apos;s real decision is known, and note where it came from. It is separate from our work being complete.</p>
+          <form className="mt-3 grid gap-3 sm:grid-cols-[12rem_1fr_auto] sm:items-end" onSubmit={(e) => { const fd = f(e); act({ action: "record_decision", decision: String(fd.get("dc")), note: String(fd.get("dn")) }, "Official decision recorded."); }}>
+            <select name="dc" required className={input} defaultValue="">{[<option key="" value="" disabled>Decision…</option>, ...DECISIONS.map((d) => <option key={d} value={d}>{DECISION_LABEL[d]}</option>)]}</select>
+            <input name="dn" required minLength={5} maxLength={500} className={input} placeholder="Source, e.g. decision letter dated…" />
+            <Button type="submit" variant="secondary" disabled={busy}>Record decision</Button>
           </form>
         </section>
       )}

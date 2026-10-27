@@ -217,6 +217,7 @@ export const CASE_STATUSES = [
   "awaiting_submission_payment",
   "submission_in_progress",
   "submitted",
+  "completed",
   "cancelled",
 ] as const;
 export type CaseStatus = (typeof CASE_STATUSES)[number];
@@ -230,6 +231,7 @@ export const CASE_STATUS_LABEL: Record<CaseStatus, string> = {
   awaiting_submission_payment: "Step 6 — pay the submission fee",
   submission_in_progress: "Step 7 — we are preparing your submission",
   submitted: "Submitted",
+  completed: "Completed and handed over",
   cancelled: "Cancelled",
 };
 
@@ -287,6 +289,11 @@ export interface Case {
   submission_reference: string | null;
   submission_notes: string | null;
   submitted_at: string | null;
+  handover_at: string | null;
+  handover_notes: string | null;
+  decision: "approved" | "refused" | "withdrawn" | null;
+  decision_at: string | null;
+  decision_note: string | null;
   delete_after: string | null;
   created_at: string;
   updated_at: string;
@@ -312,6 +319,20 @@ export interface CasePayment {
   updated_at: string;
 }
 
+export interface CaseDeliverable {
+  id: string;
+  case_id: string;
+  original_name: string;
+  storage_path: string;
+  mime: "application/pdf" | "image/jpeg" | "image/png";
+  size_bytes: number;
+  uploaded_by: string | null;
+  uploaded_at: string;
+}
+
+export const DECISIONS = ["approved", "refused", "withdrawn"] as const;
+export const DECISION_LABEL: Record<(typeof DECISIONS)[number], string> = { approved: "Approved by the authority", refused: "Refused by the authority", withdrawn: "Application withdrawn" };
+
 export interface CaseDocument {
   id: string;
   case_id: string;
@@ -331,6 +352,7 @@ export interface CaseDetail {
   country: Pick<Country, "id" | "slug" | "name">;
   payments: CasePayment[];
   documents: CaseDocument[];
+  deliverables: CaseDeliverable[];
   events: AuditEntry[];
 }
 
@@ -355,3 +377,10 @@ export interface BlogPost {
 export interface CaseMessage { id: string; case_id: string; sender: "client" | "staff"; sender_label: string; body: string; internal: boolean; created_at: string }
 export interface DataRequest { id: string; client_id: string; kind: "export" | "delete"; status: "open" | "done" | "rejected"; note: string | null; created_at: string; handled_at: string | null }
 export interface AdminListRow { id: string; email: string; role: Role; is_active: boolean; last_login_at: string | null; created_at: string }
+
+export type QuestionKind = "text" | "select" | "yesno";
+export interface WizardQuestion { id: string; label: string; help: string | null; kind: QuestionKind; options: string[]; purpose: "study" | "work" | "visit" | "unsure" | null; required: boolean; sort_order: number; is_active: boolean }
+export const EMAIL_TEMPLATE_KEYS = ["case_status", "payment_verified", "deliverables_ready", "new_message"] as const;
+export type EmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number];
+export interface EmailTemplate { key: EmailTemplateKey; subject: string; body: string; updated_at: string }
+export interface ClientNotification { id: string; client_id: string; case_id: string | null; title: string; body: string; link: string | null; read_at: string | null; created_at: string }

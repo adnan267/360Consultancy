@@ -14,6 +14,7 @@ interface Props {
   leadsEnabled: boolean;
   countries: { slug: string; name: string; flag: string }[];
   services: { slug: string; title: string; summary: string }[];
+  questions?: { id: string; label: string; help: string | null; kind: "text" | "select" | "yesno"; options: string[]; purpose: string | null; required: boolean }[];
 }
 
 const KEY = "360-wizard-v1";
@@ -40,7 +41,7 @@ function Group({ legend, error, children, cols = 2 }: { legend: string; error?: 
   );
 }
 
-export function Wizard({ leadsEnabled, countries, services }: Props) {
+export function Wizard({ leadsEnabled, countries, services, questions = [] }: Props) {
   const uid = useId();
   const [a, setA] = useState<WizardDraft>({});
   const [idx, setIdx] = useState(0);
@@ -90,7 +91,7 @@ export function Wizard({ leadsEnabled, countries, services }: Props) {
     try {
       const res = await fetch("/api/leads", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: a, contact: { name: fd.get("name"), email: fd.get("email"), phone: fd.get("phone") ?? "", consentPrivacy: fd.get("consentPrivacy") === "on", website: fd.get("website") ?? "" } }),
+        body: JSON.stringify({ answers: a, extra: Object.fromEntries(questions.filter((q) => !q.purpose || q.purpose === a.purpose).map((q) => [q.id, String(fd.get(`q_${q.id}`) ?? "")]).filter(([, v]) => v !== "")), contact: { name: fd.get("name"), email: fd.get("email"), phone: fd.get("phone") ?? "", consentPrivacy: fd.get("consentPrivacy") === "on", website: fd.get("website") ?? "" } }),
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data?.ok) { setSaved(true); try { localStorage.removeItem(KEY); } catch { /* ignore */ } }
@@ -237,6 +238,15 @@ export function Wizard({ leadsEnabled, countries, services }: Props) {
                   <div><label htmlFor={`${uid}-e`} className="mb-1 block text-sm font-semibold">Email</label><input id={`${uid}-e`} name="email" type="email" required maxLength={254} autoComplete="email" className={input} disabled={saving} aria-invalid={contactErr.email ? true : undefined} />{contactErr.email?.map((m) => <p key={m} className="mt-1 text-sm font-medium text-red-700">{m}</p>)}</div>
                   <div className="sm:col-span-2"><label htmlFor={`${uid}-p`} className="mb-1 block text-sm font-semibold">Phone / WhatsApp <span className="font-normal text-muted">(optional)</span></label><input id={`${uid}-p`} name="phone" type="tel" autoComplete="tel" className={input} disabled={saving} aria-invalid={contactErr.phone ? true : undefined} />{contactErr.phone?.map((m) => <p key={m} className="mt-1 text-sm font-medium text-red-700">{m}</p>)}</div>
                 </div>
+                {questions.filter((q) => !q.purpose || q.purpose === a.purpose).map((q) => (
+                  <div key={q.id}>
+                    <label htmlFor={`${uid}-q-${q.id}`} className="mb-1 block text-sm font-semibold">{q.label}{!q.required && <span className="font-normal text-muted"> (optional)</span>}</label>
+                    {q.help && <p className="mb-1 text-xs text-muted">{q.help}</p>}
+                    {q.kind === "text" ? <input id={`${uid}-q-${q.id}`} name={`q_${q.id}`} maxLength={300} required={q.required} className={input} disabled={saving} />
+                      : <select id={`${uid}-q-${q.id}`} name={`q_${q.id}`} required={q.required} defaultValue="" className={input} disabled={saving}><option value="">Choose…</option>{(q.kind === "yesno" ? ["Yes", "No"] : q.options).map((o) => <option key={o} value={o}>{o}</option>)}</select>}
+                    {contactErr[`q_${q.id}`]?.map((m) => <p key={m} className="mt-1 text-sm font-medium text-red-700">{m}</p>)}
+                  </div>
+                ))}
                 <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
                 <label className="flex items-start gap-3 text-sm text-muted"><input type="checkbox" name="consentPrivacy" required disabled={saving} className="mt-0.5 size-5 shrink-0 accent-navy-800" /><span>I have read and accept the <a href="/privacy" target="_blank" className="font-semibold text-navy-700 underline">Privacy Policy</a>.</span></label>
                 {contactErr.consentPrivacy?.map((m) => <p key={m} className="text-sm font-medium text-red-700">{m}</p>)}

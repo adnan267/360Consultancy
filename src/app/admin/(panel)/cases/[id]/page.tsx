@@ -29,7 +29,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
   return (
     <div className="space-y-6">
       <Link href="/admin/cases" className="text-sm font-semibold text-navy-700 hover:underline">← All cases</Link>
-      <div className="flex flex-wrap items-center gap-3"><h1 className="font-mono text-2xl font-extrabold text-navy-900">{c.reference}</h1><Badge tone={c.status === "submitted" ? "green" : c.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[c.status]}</Badge></div>
+      <div className="flex flex-wrap items-center gap-3"><h1 className="font-mono text-2xl font-extrabold text-navy-900">{c.reference}</h1><Badge tone={c.status === "submitted" || c.status === "completed" ? "green" : c.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[c.status]}</Badge></div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -71,9 +71,20 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
 
       {c.review_report && <Card><h2 className="font-bold text-navy-900">Review report sent to client</h2><p className="mt-2 whitespace-pre-wrap text-sm">{c.review_report}</p>{c.submission_quote_pkr && <p className="mt-2 text-sm font-semibold">Quote: {formatPkr(c.submission_quote_pkr)}</p>}</Card>}
 
+      {(c.handover_at || c.decision) && (
+        <Card>
+          <h2 className="font-bold text-navy-900">Handover and official decision</h2>
+          <dl className="mt-3 grid grid-cols-[10rem_1fr] gap-y-2 text-sm">
+            <dt className="text-muted">Consultancy work</dt><dd>{c.handover_at ? `Completed ${pkt(c.handover_at)}` : "In progress"}</dd>
+            {c.handover_notes && <><dt className="text-muted">Handover notes</dt><dd className="whitespace-pre-wrap">{c.handover_notes}</dd></>}
+            <dt className="text-muted">Official decision</dt><dd>{c.decision ? `${c.decision} (${c.decision_at ? pkt(c.decision_at) : ""})` : "Not recorded"}{c.decision_note && <span className="block text-xs text-muted">{c.decision_note}</span>}</dd>
+          </dl>
+        </Card>
+      )}
+
       <Card>
         <h2 className="mb-4 font-bold text-navy-900">Actions</h2>
-        <CaseAdminActions caseId={c.id} status={c.status} role={session.role} quotePkr={c.submission_quote_pkr} payments={d.payments.map((p) => ({ stage: p.stage, status: p.status, amountPkr: p.amount_pkr }))} documents={d.documents.map((x) => ({ id: x.id, name: x.original_name, status: x.status }))} />
+        <CaseAdminActions caseId={c.id} status={c.status} role={session.role} quotePkr={c.submission_quote_pkr} payments={d.payments.map((p) => ({ stage: p.stage, status: p.status, amountPkr: p.amount_pkr }))} documents={d.documents.map((x) => ({ id: x.id, name: x.original_name, status: x.status }))} deliverables={d.deliverables.map((x) => ({ id: x.id, name: x.original_name }))} decision={c.decision} hasSubmission={!!c.submitted_at} />
       </Card>
 
       <Card>

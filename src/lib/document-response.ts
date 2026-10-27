@@ -1,7 +1,6 @@
-import type { CaseDocument } from "./types";
 
 /** Always a download (never rendered inline on our origin), never cached, never sniffed. */
-export function documentResponse(doc: CaseDocument, bytes: Uint8Array): Response {
+export function documentResponse(doc: { original_name: string; mime: string }, bytes: Uint8Array): Response {
   const safe = doc.original_name.replace(/[^\w.\- ]+/g, "_");
   return new Response(bytes as unknown as BodyInit, {
     headers: {

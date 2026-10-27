@@ -37,7 +37,7 @@ export default async function CasesPage({ searchParams }: { searchParams: Promis
           <table className="w-full min-w-[44rem] text-left text-sm">
             <thead className="text-xs uppercase tracking-wider text-muted"><tr><th className="py-2">Reference</th><th>Client</th><th>Destination</th><th>Purpose</th><th>Status</th><th>Opened</th></tr></thead>
             <tbody className="divide-y divide-line">{rows.map((r) => (
-              <tr key={r.id}><td className="py-3"><Link href={`/admin/cases/${r.id}`} className="font-mono font-semibold text-navy-700 hover:underline">{r.reference}</Link></td><td>{r.client_name}<br /><span className="text-xs text-muted">{r.client_email}</span></td><td>{r.country_name}</td><td className="capitalize">{r.purpose}</td><td><Badge tone={r.status === "submitted" ? "green" : r.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[r.status]}</Badge></td><td className="text-muted">{pkt(r.created_at)}</td></tr>
+              <tr key={r.id}><td className="py-3"><Link href={`/admin/cases/${r.id}`} className="font-mono font-semibold text-navy-700 hover:underline">{r.reference}</Link></td><td>{r.client_name}<br /><span className="text-xs text-muted">{r.client_email}</span></td><td>{r.country_name}</td><td className="capitalize">{r.purpose}</td><td><Badge tone={r.status === "submitted" || r.status === "completed" ? "green" : r.status === "cancelled" ? "gray" : "navy"}>{CASE_STATUS_LABEL[r.status]}</Badge></td><td className="text-muted">{pkt(r.created_at)}</td></tr>
             ))}</tbody>
           </table>
         ) : <p className="text-sm text-muted">No cases match.</p>}

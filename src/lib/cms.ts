@@ -1,3 +1,4 @@
+import { notifyClient } from "./notifications";
 import { sendPlainEmail, notifyAdmins } from "./email";
 import { siteUrl } from "./env";
 import type { Result } from "./bookings";
@@ -71,7 +72,8 @@ export async function staffSendMessage(actor: { id: string; label: string }, cas
   await repo.addCaseMessage({ case_id: caseId, sender: "staff", sender_label: "360 Consultancy", body: p.data.body, internal: p.data.internal });
   await repo.appendAudit({ booking_id: null, case_id: caseId, actor_id: actor.id, actor_label: actor.label, action: p.data.internal ? "internal_note_added" : "message_sent", from_value: null, to_value: null, meta: {} });
   if (!p.data.internal) {
-    void sendPlainEmail(d.client.email, `New message on your case ${d.case.reference}`, `Dear ${d.client.full_name},\n\nYou have a new message from 360 Consultancy on case ${d.case.reference}. Sign in to read it: ${siteUrl()}/portal/cases/${d.case.id}`).catch(() => {});
+    const link = `${siteUrl()}/portal/cases/${d.case.id}`;
+    void notifyClient({ clientId: d.client.id, clientEmail: d.client.email, caseId: d.case.id, templateKey: "new_message", title: "New message from your consultant", vars: { name: d.client.full_name, reference: d.case.reference }, link });
   }
   return { ok: true };
 }

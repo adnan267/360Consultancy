@@ -148,6 +148,7 @@ export const leadContactSchema = z.strictObject({
 export const leadRequestSchema = z.strictObject({
   answers: wizardAnswersSchema,
   contact: leadContactSchema,
+  extra: z.record(z.uuid(), z.string().trim().max(300)).refine((r) => Object.keys(r).length <= 30).optional(),
 });
 export type LeadRequest = z.infer<typeof leadRequestSchema>;
 

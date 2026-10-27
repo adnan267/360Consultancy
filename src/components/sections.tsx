@@ -215,7 +215,7 @@ export function ProcessSection() {
     <Section className="!py-14 sm:!py-20">
       <div className="grid items-stretch gap-8 lg:grid-cols-[1.7fr_1fr]">
         <div>
-          <SectionHeading eyebrow="How it works" title="Four clear steps" intro="A transparent process from your first message to your confirmed service." />
+          <SectionHeading eyebrow="How it works" title="Six clear steps" intro="A transparent process from choosing your destination to receiving your deliverables. Every step is paid before it begins." />
           <ol className="mt-10 grid gap-4 sm:grid-cols-2">
             {PROCESS_STEPS.map((s, i) => (
               <li key={s.title} className="relative rounded-2xl border border-line bg-white p-5 shadow-card">

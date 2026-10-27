@@ -20,11 +20,24 @@ export async function createLead(input: unknown, ctx: { ip: string }): Promise<R
     for (const i of parsed.error.issues) (fields[String(i.path.at(-1) ?? "form")] ??= []).push(i.message);
     return fail(422, "Please check the highlighted fields.", fields);
   }
-  const { answers, contact } = parsed.data;
+  const { answers, contact, extra } = parsed.data;
 
   if (contact.website) return { ok: true, suggestedServices: [] }; // honeypot: pretend success
 
   if (!(await repo.hitRateLimit(`lead:email:${contact.email}`, 3, 86_400))) return fail(429, "Too many requests for this email. Please try again later.");
+
+  // Admin-defined extra questions: only active ones that apply to this purpose are accepted; required ones must be answered.
+  const applicable = (await repo.listWizardQuestions({ activeOnly: true })).filter((q) => !q.purpose || q.purpose === answers.purpose);
+  const extraAnswers: { question: string; answer: string }[] = [];
+  const missing: Record<string, string[]> = {};
+  for (const q of applicable) {
+    const v = (extra?.[q.id] ?? "").trim();
+    if (!v) { if (q.required) missing[`q_${q.id}`] = ["This question is required"]; continue; }
+    if (q.kind === "select" && !q.options.includes(v)) { missing[`q_${q.id}`] = ["Choose one of the options"]; continue; }
+    if (q.kind === "yesno" && v !== "Yes" && v !== "No") { missing[`q_${q.id}`] = ["Choose Yes or No"]; continue; }
+    extraAnswers.push({ question: q.label, answer: v });
+  }
+  if (Object.keys(missing).length) return fail(422, "Please answer the highlighted questions.", missing);
 
   const s = suggest(answers);
   await repo.insertLead({
@@ -33,7 +46,7 @@ export async function createLead(input: unknown, ctx: { ip: string }): Promise<R
     phone: contact.phone ?? null,
     purpose: answers.purpose,
     destination: answers.destination,
-    answers,
+    answers: extraAnswers.length ? { ...answers, extra_answers: extraAnswers } : answers,
     suggested_services: s.serviceSlugs,
   });
   await notifyAdmins("New lead from the website", `${contact.name} saved their details (${answers.purpose} → ${answers.destination}). View it under Leads in the admin panel.`);

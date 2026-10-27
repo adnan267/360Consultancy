@@ -1,8 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "../env";
-import type { AdminListRow, BlogPost, CaseMessage, DataRequest, Faq, Role, Case, CaseDetail, CaseDocument, CaseListRow, CasePayment, CaseStage, CaseStatus, Client, DocStatus, AdminUser, AuditEntry, Lead, LeadStatus, Scholarship, ScholarshipFilter, Booking, BookingDetail, BookingFilter, BookingListRow, Country, Payment, Service } from "../types";
+import type { AdminListRow, BlogPost, CaseMessage, DataRequest, Faq, Role, Case, CaseDeliverable, CaseDetail, CaseDocument, CaseListRow, CasePayment, CaseStage, CaseStatus, Client, DocStatus, AdminUser, AuditEntry, Lead, LeadStatus, Scholarship, ScholarshipFilter, Booking, BookingDetail, BookingFilter, BookingListRow, Country, Payment, Service } from "../types";
 import type { ServicePatch } from "../validation";
-import { DuplicateEmailError, DuplicateReferenceError, type CasePatch, type CasePaymentPatch, type CaseStats, type NewCaseRow, type NewClientRow, type NewDocumentRow, type NewBookingRow, type NewLeadRow, type NewPaymentEventRow, type Report, type PaymentPatch, type Repo, type Stats } from "./types";
+import { DuplicateEmailError, DuplicateReferenceError, type CasePatch, type CasePaymentPatch, type CaseStats, type NewCaseRow, type NewClientRow, type NewDeliverableRow, type NewDocumentRow, type NewBookingRow, type NewLeadRow, type NewPaymentEventRow, type Report, type PaymentPatch, type Repo, type Stats } from "./types";
 
 let client: SupabaseClient | null = null;
 function db(): SupabaseClient {
@@ -247,10 +247,10 @@ export class SupabaseRepo implements Repo {
     return (await this.getCaseDetail(c.id))!;
   }
   async getCaseDetail(id: string): Promise<CaseDetail | null> {
-    const { data, error } = await db().from("cases").select("*, clients(id,email,full_name,phone), countries(id,slug,name), case_payments(*), case_documents(*)").eq("id", id).maybeSingle();
+    const { data, error } = await db().from("cases").select("*, clients(id,email,full_name,phone), countries(id,slug,name), case_payments(*), case_documents(*), case_deliverables(*)").eq("id", id).maybeSingle();
     fail(error, "getCaseDetail");
     if (!data) return null;
-    const { clients, countries, case_payments, case_documents, ...c } = data as Record<string, unknown>;
+    const { clients, countries, case_payments, case_documents, case_deliverables, ...c } = data as Record<string, unknown>;
     const order = { intake: 0, review: 1, submission: 2 } as const;
     return {
       case: c as unknown as Case,
@@ -258,6 +258,7 @@ export class SupabaseRepo implements Repo {
       country: one(countries as CaseDetail["country"] | CaseDetail["country"][])!,
       payments: ((case_payments ?? []) as CasePayment[]).sort((a, b) => order[a.stage] - order[b.stage]),
       documents: ((case_documents ?? []) as CaseDocument[]).sort((a, b) => a.uploaded_at.localeCompare(b.uploaded_at)),
+      deliverables: ((case_deliverables ?? []) as CaseDeliverable[]).sort((a, b) => a.uploaded_at.localeCompare(b.uploaded_at)),
       events: await this.listAudit({ caseId: id, limit: 300 }),
     };
   }
@@ -289,6 +290,20 @@ export class SupabaseRepo implements Repo {
     const { data, error } = await db().from("cases").update(patch).eq("id", id).eq("status", expectStatus).select("id");
     fail(error, "updateCase");
     return (data?.length ?? 0) === 1;
+  }
+  async insertDeliverable(row: NewDeliverableRow) {
+    const { data, error } = await db().from("case_deliverables").insert(row).select("*").single();
+    fail(error, "insertDeliverable");
+    return data as CaseDeliverable;
+  }
+  async getDeliverable(id: string) {
+    const { data, error } = await db().from("case_deliverables").select("*").eq("id", id).maybeSingle();
+    fail(error, "getDeliverable");
+    return (data as CaseDeliverable | null) ?? null;
+  }
+  async deleteDeliverable(id: string) {
+    const { error } = await db().from("case_deliverables").delete().eq("id", id);
+    fail(error, "deleteDeliverable");
   }
   async insertCasePayment(row: { case_id: string; stage: CaseStage; amount_pkr: number }) {
     const { data, error } = await db().from("case_payments").insert(row).select("*").single();
@@ -417,6 +432,47 @@ export class SupabaseRepo implements Repo {
       : await db().from("faqs").insert(fields).select("id,question,answer,sort_order,is_published").single();
     fail(error, "saveFaq");
     return (data as Faq | null) ?? null;
+  }
+  async listWizardQuestions(opts?: { activeOnly?: boolean }) {
+    let q = db().from("wizard_questions").select("*").order("sort_order").order("created_at");
+    if (opts?.activeOnly) q = q.eq("is_active", true);
+    const { data, error } = await q;
+    fail(error, "listWizardQuestions");
+    return (data ?? []) as import("../types").WizardQuestion[];
+  }
+  async saveWizardQuestion(row: Omit<import("../types").WizardQuestion, "id"> & { id?: string }) {
+    const { id, ...fields } = row;
+    const { data, error } = id
+      ? await db().from("wizard_questions").update(fields).eq("id", id).select("*").maybeSingle()
+      : await db().from("wizard_questions").insert(fields).select("*").single();
+    fail(error, "saveWizardQuestion");
+    return (data as import("../types").WizardQuestion | null) ?? null;
+  }
+  async deleteWizardQuestion(id: string) {
+    const { error } = await db().from("wizard_questions").delete().eq("id", id);
+    fail(error, "deleteWizardQuestion");
+  }
+  async listEmailTemplates() {
+    const { data, error } = await db().from("email_templates").select("*");
+    fail(error, "listEmailTemplates");
+    return (data ?? []) as import("../types").EmailTemplate[];
+  }
+  async saveEmailTemplate(key: import("../types").EmailTemplateKey, subject: string, body: string) {
+    const { error } = await db().from("email_templates").upsert({ key, subject, body, updated_at: new Date().toISOString() });
+    fail(error, "saveEmailTemplate");
+  }
+  async addNotification(n: { client_id: string; case_id: string | null; title: string; body: string; link: string | null }) {
+    const { error } = await db().from("client_notifications").insert(n);
+    fail(error, "addNotification");
+  }
+  async listNotifications(clientId: string, limit = 50) {
+    const { data, error } = await db().from("client_notifications").select("*").eq("client_id", clientId).order("created_at", { ascending: false }).limit(limit);
+    fail(error, "listNotifications");
+    return (data ?? []) as import("../types").ClientNotification[];
+  }
+  async markNotificationsRead(clientId: string) {
+    const { error } = await db().from("client_notifications").update({ read_at: new Date().toISOString() }).eq("client_id", clientId).is("read_at", null);
+    fail(error, "markNotificationsRead");
   }
   async deleteFaq(id: string) {
     const { error } = await db().from("faqs").delete().eq("id", id);

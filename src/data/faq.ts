@@ -34,8 +34,10 @@ export const FAQS: { q: string; a: string }[] = [
 ];
 
 export const PROCESS_STEPS = [
-  { title: "Tell us about your goal", body: "Share where you want to go and why — travel, study or work — through the booking form." },
-  { title: "Choose a suitable service", body: "Pick the consultation or assistance service that fits your situation and preferred time." },
-  { title: "Review fee and payment instructions", body: "You pay the fee for the step online in your client portal; the step starts once the payment is confirmed." },
-  { title: "Receive confirmation and your service", body: "Once your payment is verified we confirm your booking and deliver the agreed consultancy service." },
+  { title: "Choose your destination", body: "Pick where you want to go and why: study, work or visit." },
+  { title: "Complete your preliminary assessment", body: "Answer a few questions in the visa wizard. It is guidance, not an official eligibility decision." },
+  { title: "Pay the initial consultancy fee", body: "Create your client account and pay the starting fee online. Your case opens once the payment is confirmed." },
+  { title: "Upload documents for review", body: "Upload your documents securely. Our team reviews them and tells you what is missing or needs fixing." },
+  { title: "Approve the proposal and pay the balance", body: "If you want us to prepare or submit your file, you receive a clear proposal. You pay the balance only after you approve it." },
+  { title: "Receive deliverables and next steps", body: "We hand over the agreed files and explain your next steps. Final visa decisions always remain with the relevant authority." },
 ];

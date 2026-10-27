@@ -77,15 +77,33 @@ export function NewCaseForm({ countries }: { countries: { slug: string; name: st
   );
 }
 
-export function PayOnlineButton({ caseId, stage }: { caseId: string; stage: CaseStage }) {
+export function PayOnlineButton({ caseId, stage, summary }: { caseId: string; stage: CaseStage; summary?: { service: string; stageLabel: string; amount: string; included: string } }) {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ok, setOk] = useState(false);
   return (
     <div className="space-y-3">
+      {summary && (
+        <div className="rounded-xl border border-line bg-surface p-4 text-sm">
+          <h3 className="font-bold text-navy-900">Before you pay — please review</h3>
+          <dl className="mt-2 grid grid-cols-[9rem_1fr] gap-y-1">
+            <dt className="text-muted">Service</dt><dd>{summary.service}</dd>
+            <dt className="text-muted">This payment</dt><dd>{summary.stageLabel} — <strong>{summary.amount}</strong></dd>
+            <dt className="text-muted">What it covers</dt><dd>{summary.included}</dd>
+            <dt className="text-muted">Not included</dt><dd>Embassy, visa, biometric, translation, courier and other third-party fees. These are paid separately to those parties.</dd>
+            <dt className="text-muted">Decisions</dt><dd>We are a private consultancy. The final visa decision always rests with the relevant authority; we cannot guarantee approval.</dd>
+          </dl>
+          <p className="mt-2 text-xs text-muted">Read our <a className="underline" href="/refund-policy" target="_blank" rel="noreferrer">refund &amp; cancellation policy</a>, <a className="underline" href="/terms" target="_blank" rel="noreferrer">terms</a> and <a className="underline" href="/privacy" target="_blank" rel="noreferrer">privacy notice</a>.</p>
+          <label className="mt-3 flex items-start gap-2 font-semibold">
+            <input type="checkbox" className="mt-1" checked={ok} onChange={(e) => setOk(e.target.checked)} />
+            <span>I understand this is a private consultancy service, and I accept the terms, refund policy and privacy notice.</span>
+          </label>
+        </div>
+      )}
       {err && <Notice tone="error">{err}</Notice>}
-      <Button disabled={busy} onClick={async () => {
+      <Button disabled={busy || (!!summary && !ok)} onClick={async () => {
         setBusy(true); setErr(null);
-        const r = await send(`/api/portal/cases/${caseId}/pay`, "POST", { stage });
+        const r = await send(`/api/portal/cases/${caseId}/pay`, "POST", { stage, acknowledged: ok || !summary });
         if (r.ok && typeof r.url === "string") { window.location.href = r.url; return; }
         setBusy(false); setErr(r.error ?? "Failed");
       }}>{busy ? "Opening payment page…" : "Pay online (USDT / crypto)"}</Button>

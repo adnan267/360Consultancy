@@ -8,6 +8,7 @@ import type {
   AdminUser,
   Case,
   CaseDetail,
+  CaseDeliverable,
   CaseDocument,
   CaseListRow,
   CasePayment,
@@ -98,7 +99,13 @@ export interface CasePatch {
   submission_reference?: string | null;
   submission_notes?: string | null;
   submitted_at?: string | null;
+  handover_at?: string | null;
+  handover_notes?: string | null;
+  decision?: "approved" | "refused" | "withdrawn" | null;
+  decision_at?: string | null;
+  decision_note?: string | null;
 }
+export interface NewDeliverableRow { case_id: string; original_name: string; storage_path: string; mime: CaseDeliverable["mime"]; size_bytes: number; uploaded_by: string | null }
 export interface CasePaymentPatch {
   status?: CasePayment["status"];
   client_reference?: string | null;
@@ -162,6 +169,9 @@ export interface Repo {
   getDocument(id: string): Promise<CaseDocument | null>;
   updateDocument(id: string, patch: { status?: DocStatus; admin_note?: string | null }): Promise<CaseDocument | null>;
   deleteDocument(id: string): Promise<void>;
+  insertDeliverable(row: NewDeliverableRow): Promise<CaseDeliverable>;
+  getDeliverable(id: string): Promise<CaseDeliverable | null>;
+  deleteDeliverable(id: string): Promise<void>;
   getCaseStats(): Promise<CaseStats>;
 
   getBookingIdByReference(reference: string): Promise<string | null>;
@@ -179,6 +189,14 @@ export interface Repo {
   listFaqs(opts?: { publishedOnly?: boolean }): Promise<Faq[]>;
   saveFaq(row: { id?: string; question: string; answer: string; sort_order?: number; is_published?: boolean }): Promise<Faq | null>;
   deleteFaq(id: string): Promise<void>;
+  listWizardQuestions(opts?: { activeOnly?: boolean }): Promise<import("../types").WizardQuestion[]>;
+  saveWizardQuestion(row: Omit<import("../types").WizardQuestion, "id"> & { id?: string }): Promise<import("../types").WizardQuestion | null>;
+  deleteWizardQuestion(id: string): Promise<void>;
+  listEmailTemplates(): Promise<import("../types").EmailTemplate[]>;
+  saveEmailTemplate(key: import("../types").EmailTemplateKey, subject: string, body: string): Promise<void>;
+  addNotification(n: { client_id: string; case_id: string | null; title: string; body: string; link: string | null }): Promise<void>;
+  listNotifications(clientId: string, limit?: number): Promise<import("../types").ClientNotification[]>;
+  markNotificationsRead(clientId: string): Promise<void>;
   listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }): Promise<BlogPost[]>;
   getBlogPost(key: { id?: string; slug?: string }, opts?: { publishedOnly?: boolean }): Promise<BlogPost | null>;
   saveBlogPost(row: { id?: string; slug: string; title: string; excerpt: string; body: string; meta_title: string | null; meta_description: string | null; is_published: boolean }): Promise<BlogPost>;

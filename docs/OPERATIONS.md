@@ -51,3 +51,11 @@ Create/reset: `npm run create-admin -- email role`. Roles: `admin` (everything) 
 3. Clients then see "Pay online" instead of bank details. Status `finished` + matching invoice id, amount and currency verifies the payment automatically (audit actor `provider:nowpayments`); anything else is left for manual review and emailed to admins.
 4. Test with a small real payment first (or NOWPayments sandbox via `NOWPAYMENTS_API_BASE=https://api-sandbox.nowpayments.io`).
 Scope: portal case payments. Consultation bookings still use the manual flow.
+
+## Handover, questions, templates, notifications (migrations 0014–0016)
+- **Handover**: on a case in "Review complete"/"Submitted", staff upload final files (PDF/images), then use *Complete case*. This is consultancy completion only; the **official visa decision** is recorded separately (needs a recorded submission and a source note) and never changes the consultancy status.
+- **Payment terms**: before any online payment the client sees a proposal summary and must tick the terms box; the server refuses without it and the acceptance (terms version, amount) is written to the audit log. Bump `PAYMENT_TERMS_VERSION` in `src/lib/cases.ts` when terms change.
+- **Admin → Wizard questions**: extra questions on the public wizard (text / choose one / yes-no, optionally per purpose). Answers show on each lead.
+- **Admin → Email templates**: edit client emails (placeholders `{{name}} {{reference}} {{status}} {{link}}`). Emails send only when an email provider is enabled.
+- **Notifications**: every status change, confirmed payment, handover and staff message also appears in the client's portal notification centre.
+- New services from migration 0014 are inactive with fee 0; activate them under Services & pricing after setting real fees.

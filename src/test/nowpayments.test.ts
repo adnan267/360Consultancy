@@ -63,20 +63,20 @@ describe("NOWPayments", () => {
 
   it("creates an invoice and stores what we asked for", async () => {
     stubInvoice();
-    const r = await startOnlinePayment(clientId, caseId, "intake");
+    const r = await startOnlinePayment(clientId, caseId, "intake", true);
     expect(r).toMatchObject({ ok: true, url: expect.stringContaining("nowpayments.io") });
     expect(repo.casePayments[0]).toMatchObject({ provider: "nowpayments", provider_ref: "inv-1", provider_currency: "pkr" });
-    expect(await startOnlinePayment(clientId, caseId, "review")).toMatchObject({ ok: false, status: 409 });
+    expect(await startOnlinePayment(clientId, caseId, "review", true)).toMatchObject({ ok: false, status: 409 });
   });
 
   it("refuses an invoice URL that is not on nowpayments.io", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ id: "x", invoice_url: "https://evil.example/pay" }), { status: 200 })));
-    expect(await startOnlinePayment(clientId, caseId, "intake")).toMatchObject({ ok: false });
+    expect(await startOnlinePayment(clientId, caseId, "intake", true)).toMatchObject({ ok: false });
   });
 
   it("verifies on 'finished', moves the case on, assigns an invoice number, and is idempotent", async () => {
     stubInvoice();
-    await startOnlinePayment(clientId, caseId, "intake");
+    await startOnlinePayment(clientId, caseId, "intake", true);
     expect(await applyNowPaymentsIpn(ipn({ payment_status: "confirming" }))).toBe("pending");
     expect(repo.casePayments[0].status).toBe("awaiting");
     expect(await applyNowPaymentsIpn(ipn())).toBe("verified");
@@ -89,7 +89,7 @@ describe("NOWPayments", () => {
 
   it("never verifies on a wrong amount, wrong invoice, or partial payment", async () => {
     stubInvoice();
-    await startOnlinePayment(clientId, caseId, "intake");
+    await startOnlinePayment(clientId, caseId, "intake", true);
     expect(await applyNowPaymentsIpn(ipn({ price_amount: 1 }))).toBe("rejected");
     expect(await applyNowPaymentsIpn(ipn({ invoice_id: "other" }))).toBe("rejected");
     expect(await applyNowPaymentsIpn(ipn({ payment_status: "partially_paid" }))).toBe("rejected");
@@ -100,5 +100,12 @@ describe("NOWPayments", () => {
   it("does not verify when no invoice was started by us", async () => {
     expect(await applyNowPaymentsIpn(ipn())).toBe("rejected");
     expect(repo.casePayments[0].status).toBe("awaiting");
+  });
+});
+
+describe("terms acknowledgement before payment", () => {
+  it("refuses to start payment without acknowledgement and audits acceptance", async () => {
+    expect(await startOnlinePayment(clientId, caseId, "intake")).toMatchObject({ ok: false, status: 422 });
+    expect(await startOnlinePayment(clientId, caseId, "intake", "yes")).toMatchObject({ ok: false, status: 422 });
   });
 });

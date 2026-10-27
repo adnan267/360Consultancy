@@ -12,7 +12,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   let body: unknown;
   try { body = await readJson(req, 500); } catch (e) { return bodyErrorResponse(e) ?? jsonError(400, "Bad request"); }
   try {
-    const r = await startOnlinePayment(s.sub, id, (body as { stage?: unknown } | null)?.stage);
+    const r = await startOnlinePayment(s.sub, id, (body as { stage?: unknown } | null)?.stage, (body as { acknowledged?: unknown } | null)?.acknowledged);
     if (!r.ok) return json({ ok: false, error: r.error }, r.status);
     return json({ ok: true, url: r.url });
   } catch (e) {

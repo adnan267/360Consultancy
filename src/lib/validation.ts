@@ -92,7 +92,7 @@ export const bookingFilterSchema = z.object({
 });
 
 // ── Client portal ───────────────────────────────────────────────────────────
-import { CASE_PURPOSES, CASE_STAGES, DOC_TYPES } from "./types";
+import { CASE_PURPOSES, CASE_STAGES, DECISIONS, DOC_TYPES } from "./types";
 
 export const clientRegisterSchema = z.strictObject({
   fullName: z.string().trim().min(2, "Please enter your name").max(100),
@@ -127,6 +127,8 @@ export const adminCaseActionSchema = z.discriminatedUnion("action", [
   z.strictObject({ action: z.literal("request_fixes"), note: z.string().trim().min(3).max(1000) }),
   z.strictObject({ action: z.literal("complete_review"), report: z.string().trim().min(20, "Write the review report").max(8000), quotePkr: z.number().int().min(1).max(10_000_000) }),
   z.strictObject({ action: z.literal("record_submission"), reference: z.string().trim().min(3).max(120), notes: z.string().trim().max(1000).optional() }),
+  z.strictObject({ action: z.literal("complete_case"), notes: z.string().trim().max(2000).optional() }),
+  z.strictObject({ action: z.literal("record_decision"), decision: z.enum(DECISIONS), note: z.string().trim().min(5, "Record where the official decision came from (e.g. decision letter date)").max(500) }),
   z.strictObject({ action: z.literal("cancel"), note: z.string().trim().min(3).max(500) }),
   z.strictObject({ action: z.literal("add_note"), note: z.string().trim().min(1).max(1000) }),
 ]);
@@ -180,3 +182,28 @@ export const staffMessageSchema = z.strictObject({ body: z.string().trim().min(1
 export const dataRequestSchema = z.strictObject({ kind: z.enum(["export", "delete"]), note: z.string().trim().max(1000).optional() });
 export const dataRequestPatchSchema = z.strictObject({ status: z.enum(["done", "rejected"]) });
 export const teamPatchSchema = z.strictObject({ role: z.enum(["admin", "staff", "consultant", "finance", "support"]).optional(), is_active: z.boolean().optional() });
+
+export const wizardQuestionSchema = z.strictObject({
+  label: z.string().trim().min(3).max(200),
+  help: z.string().trim().max(400).nullable().default(null),
+  kind: z.enum(["text", "select", "yesno"]),
+  options: z.array(z.string().trim().min(1).max(80)).max(12).default([]),
+  purpose: z.enum(["study", "work", "visit", "unsure"]).nullable().default(null),
+  required: z.boolean().default(false),
+  sort_order: z.number().int().min(0).max(10_000).default(100),
+  is_active: z.boolean().default(true),
+}).refine((q) => q.kind !== "select" || q.options.length >= 2, { path: ["options"], message: "A choice question needs at least two options" });
+export const wizardQuestionPatchSchema = z.strictObject({
+  label: z.string().trim().min(3).max(200).optional(),
+  help: z.string().trim().max(400).nullable().optional(),
+  options: z.array(z.string().trim().min(1).max(80)).max(12).optional(),
+  purpose: z.enum(["study", "work", "visit", "unsure"]).nullable().optional(),
+  required: z.boolean().optional(),
+  sort_order: z.number().int().min(0).max(10_000).optional(),
+  is_active: z.boolean().optional(),
+});
+export const emailTemplateSchema = z.strictObject({
+  key: z.enum(["case_status", "payment_verified", "deliverables_ready", "new_message"]),
+  subject: z.string().trim().min(3).max(200),
+  body: z.string().trim().min(3).max(4000),
+});

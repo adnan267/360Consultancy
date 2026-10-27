@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { SEED_SCHOLARSHIPS } from "@/data/scholarships";
 import { SEED_COUNTRIES, SEED_SERVICES } from "@/data/seed";
-import type { Case, CaseDetail, CaseDocument, CaseListRow, CasePayment, CaseStage, CaseStatus, Client, DocStatus, AdminUser, AuditEntry, Lead, LeadStatus, Scholarship, ScholarshipFilter, Booking, BookingDetail, BookingFilter, BookingListRow, Country, Payment, Service } from "../types";
+import type { Case, CaseDeliverable, CaseDetail, CaseDocument, CaseListRow, CasePayment, CaseStage, CaseStatus, Client, DocStatus, AdminUser, AuditEntry, Lead, LeadStatus, Scholarship, ScholarshipFilter, Booking, BookingDetail, BookingFilter, BookingListRow, Country, Payment, Service } from "../types";
 import type { ServicePatch } from "../validation";
-import { DuplicateEmailError, DuplicateReferenceError, type CasePatch, type CasePaymentPatch, type CaseStats, type NewCaseRow, type NewClientRow, type NewDocumentRow, type NewBookingRow, type NewLeadRow, type NewPaymentEventRow, type Report, type PaymentPatch, type Repo, type Stats } from "./types";
+import { DuplicateEmailError, DuplicateReferenceError, type CasePatch, type CasePaymentPatch, type CaseStats, type NewCaseRow, type NewClientRow, type NewDeliverableRow, type NewDocumentRow, type NewBookingRow, type NewLeadRow, type NewPaymentEventRow, type Report, type PaymentPatch, type Repo, type Stats } from "./types";
 
 /** In-memory repository: used by tests and for local UI work without Supabase. */
 export class MemoryRepo implements Repo {
@@ -19,6 +19,7 @@ export class MemoryRepo implements Repo {
   clients: Client[] = [];
   cases: Case[] = [];
   casePayments: CasePayment[] = [];
+  deliverables: CaseDeliverable[] = [];
   documents: CaseDocument[] = [];
   private limits = new Map<string, { start: number; count: number }>();
 
@@ -199,6 +200,7 @@ export class MemoryRepo implements Repo {
       id: randomUUID(), reference: row.reference, client_id: row.client_id, country_id: row.country_id, purpose: row.purpose,
       status: "awaiting_intake_payment", submission_quote_pkr: null, review_report: null, review_completed_at: null,
       submission_reference: null, submission_notes: null, submitted_at: null,
+      handover_at: null, handover_notes: null, decision: null, decision_at: null, decision_note: null,
       delete_after: new Date(Date.now() + 2 * 365 * 86_400_000).toISOString().slice(0, 10), created_at: now, updated_at: now,
     };
     this.cases.push(c);
@@ -216,6 +218,7 @@ export class MemoryRepo implements Repo {
       country: { id: country.id, slug: country.slug, name: country.name },
       payments: this.casePayments.filter((p) => p.case_id === id).map((p) => ({ ...p })),
       documents: this.documents.filter((d) => d.case_id === id).map((d) => ({ ...d })),
+      deliverables: this.deliverables.filter((d) => d.case_id === id).map((d) => ({ ...d })),
       events: await this.listAudit({ caseId: id, limit: 300 }),
     };
   }
@@ -236,6 +239,18 @@ export class MemoryRepo implements Repo {
     if (!c || c.status !== expectStatus) return false;
     Object.assign(c, patch, { updated_at: new Date().toISOString() });
     return true;
+  }
+  async insertDeliverable(row: NewDeliverableRow) {
+    const d: CaseDeliverable = { id: randomUUID(), ...row, uploaded_at: new Date().toISOString() };
+    this.deliverables.push(d);
+    return { ...d };
+  }
+  async getDeliverable(id: string) {
+    const d = this.deliverables.find((x) => x.id === id);
+    return d ? { ...d } : null;
+  }
+  async deleteDeliverable(id: string) {
+    this.deliverables = this.deliverables.filter((x) => x.id !== id);
   }
   async insertCasePayment(row: { case_id: string; stage: CaseStage; amount_pkr: number }) {
     if (this.casePayments.some((p) => p.case_id === row.case_id && p.stage === row.stage)) throw new Error("duplicate stage payment");
@@ -363,6 +378,36 @@ export class MemoryRepo implements Repo {
     const f = { id: randomUUID(), question: row.question, answer: row.answer, sort_order: row.sort_order ?? 100, is_published: row.is_published ?? true };
     this.faqs.push(f);
     return { ...f };
+  }
+  wizardQuestions: import("../types").WizardQuestion[] = [];
+  emailTemplates: import("../types").EmailTemplate[] = [];
+  notifications: import("../types").ClientNotification[] = [];
+  async listWizardQuestions(opts?: { activeOnly?: boolean }) {
+    return this.wizardQuestions.filter((q) => !opts?.activeOnly || q.is_active).sort((a, b) => a.sort_order - b.sort_order).map((q) => ({ ...q }));
+  }
+  async saveWizardQuestion(row: Omit<import("../types").WizardQuestion, "id"> & { id?: string }) {
+    const ex = row.id ? this.wizardQuestions.find((q) => q.id === row.id) : undefined;
+    if (ex) { Object.assign(ex, row); return { ...ex }; }
+    if (row.id) return null;
+    const q = { ...row, id: crypto.randomUUID() };
+    this.wizardQuestions.push(q);
+    return { ...q };
+  }
+  async deleteWizardQuestion(id: string) { this.wizardQuestions = this.wizardQuestions.filter((q) => q.id !== id); }
+  async listEmailTemplates() { return this.emailTemplates.map((t) => ({ ...t })); }
+  async saveEmailTemplate(key: import("../types").EmailTemplateKey, subject: string, body: string) {
+    const ex = this.emailTemplates.find((t) => t.key === key);
+    const updated_at = new Date().toISOString();
+    if (ex) Object.assign(ex, { subject, body, updated_at }); else this.emailTemplates.push({ key, subject, body, updated_at });
+  }
+  async addNotification(n: { client_id: string; case_id: string | null; title: string; body: string; link: string | null }) {
+    this.notifications.push({ ...n, id: crypto.randomUUID(), read_at: null, created_at: new Date().toISOString() });
+  }
+  async listNotifications(clientId: string, limit = 50) {
+    return this.notifications.filter((n) => n.client_id === clientId).sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, limit).map((n) => ({ ...n }));
+  }
+  async markNotificationsRead(clientId: string) {
+    for (const n of this.notifications) if (n.client_id === clientId && !n.read_at) n.read_at = new Date().toISOString();
   }
   async deleteFaq(id: string) { this.faqs = this.faqs.filter((f) => f.id !== id); }
   async listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }) {
