@@ -3,6 +3,8 @@ import { bodyErrorResponse, clientIp, isSameOrigin, json, jsonError, readJson } 
 
 export async function POST(req: Request) {
   if (!isSameOrigin(req)) return jsonError(403, "Forbidden");
+  // Unpaid public booking requests are off: clients register and pay each step through the portal.
+  if (process.env.PUBLIC_BOOKING_REQUESTS !== "true") return jsonError(410, "Please register and start your case in the client portal. Payment is taken before each step.");
   let body: unknown;
   try {
     body = await readJson(req);

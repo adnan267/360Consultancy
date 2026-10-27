@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { hashPassword, signSession, verifySessionToken } from "@/lib/auth";
 import { createBookingRequest } from "@/lib/bookings";
 import { GET as exportCsv } from "@/app/api/admin/export/route";
@@ -86,6 +86,14 @@ describe("origin / CSRF protection", () => {
 });
 
 describe("public booking endpoint", () => {
+  beforeEach(() => { process.env.PUBLIC_BOOKING_REQUESTS = "true"; });
+  afterEach(() => { delete process.env.PUBLIC_BOOKING_REQUESTS; });
+  it("is closed by default: unpaid public bookings are not accepted (410)", async () => {
+    delete process.env.PUBLIC_BOOKING_REQUESTS;
+    const r = await createBooking(req("POST", "/api/bookings", { body: validBooking() }));
+    expect(r.status).toBe(410);
+    expect(repo.bookings).toHaveLength(0);
+  });
   it("returns 503 while the feature flag is off", async () => {
     delete process.env.SERVICES_ENABLED;
     const r = await createBooking(req("POST", "/api/bookings", { body: validBooking() }));
