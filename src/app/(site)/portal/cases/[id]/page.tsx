@@ -2,13 +2,13 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { pkt, PaymentStatusBadge } from "@/components/admin";
-import { CaseActions, DeleteDocButton, MessageBox, PortalLogout, UploadForm } from "@/components/PortalClient";
+import { CaseActions, PayOnlineButton, DeleteDocButton, MessageBox, PortalLogout, UploadForm } from "@/components/PortalClient";
 import { Badge, Card, Container, Notice } from "@/components/ui";
 import { getClientCase, MAX_DOCS_PER_CASE } from "@/lib/cases";
 import { PAYING_STAGE, UPLOADS_OPEN } from "@/lib/case-status";
 import { getRepo } from "@/lib/repo";
 import { getClientSession } from "@/lib/client-auth";
-import { bankDetails } from "@/lib/env";
+import { bankDetails, nowPaymentsConfig } from "@/lib/env";
 import { formatPkr } from "@/lib/pricing";
 import { CASE_STAGE_LABEL, CASE_STATUS_LABEL, DOC_TYPE_LABEL, type CaseStatus } from "@/lib/types";
 
@@ -64,7 +64,12 @@ export default async function PortalCase({ params }: { params: Promise<{ id: str
         <Card className="border-gold-500">
           <h2 className="font-bold text-navy-900">{CASE_STAGE_LABEL[stage]} — {formatPkr(pay.amount_pkr)} <PaymentStatusBadge status={pay.status} /></h2>
           {stage === "submission" && <p className="mt-1 text-sm text-muted">This is the quote you accepted for submitting your file.</p>}
-          {pay.status === "under_review" ? (
+          {nowPaymentsConfig() && pay.status !== "verified" ? (
+            <div className="mt-4 space-y-3">
+              <PayOnlineButton caseId={c.id} stage={stage} />
+              {pay.status === "under_review" && <Notice tone="info">We are checking a payment on this stage. If you already paid, this page updates automatically once it is confirmed.</Notice>}
+            </div>
+          ) : pay.status === "under_review" ? (
             <div className="mt-3"><Notice tone="info">We have your payment note and will confirm it against our bank record. This page updates once it is verified.</Notice></div>
           ) : (
             <div className="mt-4 grid gap-6 md:grid-cols-2">

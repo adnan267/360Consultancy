@@ -106,6 +106,10 @@ export interface CasePaymentPatch {
   received_amount_pkr?: number | null;
   verified_by?: string | null;
   verified_at?: string | null;
+  provider?: string | null;
+  provider_ref?: string | null;
+  provider_price?: number | null;
+  provider_currency?: string | null;
 }
 export interface NewDocumentRow { case_id: string; doc_type: DocType; original_name: string; storage_path: string; mime: CaseDocument["mime"]; size_bytes: number }
 export interface CaseStats { byStatus: Record<string, number>; paymentsToVerify: number; docsToReview: number }

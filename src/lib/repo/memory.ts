@@ -240,7 +240,7 @@ export class MemoryRepo implements Repo {
   async insertCasePayment(row: { case_id: string; stage: CaseStage; amount_pkr: number }) {
     if (this.casePayments.some((p) => p.case_id === row.case_id && p.stage === row.stage)) throw new Error("duplicate stage payment");
     const now = new Date().toISOString();
-    const p: CasePayment = { id: randomUUID(), ...row, status: "awaiting", client_reference: null, bank_reference: null, received_amount_pkr: null, verified_by: null, verified_at: null, invoice_no: null, created_at: now, updated_at: now };
+    const p: CasePayment = { id: randomUUID(), ...row, status: "awaiting", client_reference: null, bank_reference: null, received_amount_pkr: null, verified_by: null, verified_at: null, invoice_no: null, provider: null, provider_ref: null, provider_price: null, provider_currency: null, created_at: now, updated_at: now };
     this.casePayments.push(p);
     return { ...p };
   }

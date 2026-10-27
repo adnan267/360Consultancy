@@ -4,7 +4,8 @@ import { hashPassword, verifyPassword } from "./auth";
 import type { Result } from "./bookings";
 import { CASE_TRANSITIONS, FINAL_STATUSES, NEXT_AFTER_PAYMENT, PAYING_STAGE, UPLOADS_OPEN, canTransitionCase } from "./case-status";
 import { notifyAdmins, sendPlainEmail } from "./email";
-import { portalEnabled, siteUrl } from "./env";
+import { nowPaymentsConfig, portalEnabled, siteUrl } from "./env";
+import { createInvoice, type NowPaymentsIpn } from "./payments/nowpayments";
 import { generateCaseReference } from "./reference";
 import { getRepo, isDatabaseConfigured } from "./repo";
 import { DuplicateEmailError, DuplicateReferenceError } from "./repo/types";
@@ -346,6 +347,84 @@ export async function applyCaseAdminAction(caseId: string, input: unknown, actor
     void sendPlainEmail(d.client.email, `Update on your case ${d.case.reference}`, `Dear ${d.client.full_name},\n\nThere is an update on your case ${d.case.reference}. Its status is now: ${CASE_STATUS_LABEL[detail.case.status]}.\n\nSign in to your portal to see details and any next steps: ${siteUrl()}/portal/cases/${d.case.id}`).catch(() => {});
   }
   return { ok: true, detail };
+}
+
+/** Client chose to pay online: create a NOWPayments invoice for the stage that is currently due. */
+export async function startOnlinePayment(clientId: string, caseId: string, stage: unknown): Promise<Result<{ url: string }>> {
+  const g = gate();
+  if (g) return g;
+  const cfg = nowPaymentsConfig();
+  if (!cfg) return fail(503, "Online payment is not available right now.");
+  if (stage !== "intake" && stage !== "review" && stage !== "submission") return fail(422, "Invalid request");
+  const d = await getClientCase(clientId, caseId);
+  if (!d) return fail(404, "Case not found");
+  const pay = payment(d, stage);
+  if (PAYING_STAGE[d.case.status] !== stage || !pay) return fail(409, "That payment is not due right now.");
+  if (pay.status !== "awaiting" && pay.status !== "rejected" && pay.status !== "under_review") return fail(409, "This payment is already complete.");
+  const price = cfg.priceCurrency === "usd" ? Math.max(1, Math.ceil((pay.amount_pkr / cfg.pkrPerUsd) * 100) / 100) : pay.amount_pkr;
+  const inv = await createInvoice({
+    orderId: `${caseId}:${stage}`,
+    description: `Case ${d.case.reference} - ${stage}`,
+    priceAmount: price,
+    priceCurrency: cfg.priceCurrency,
+    payCurrency: cfg.payCurrency,
+    callbackUrl: `${siteUrl()}/api/webhooks/nowpayments`,
+    successUrl: `${siteUrl()}/portal/cases/${caseId}?paid=1`,
+    cancelUrl: `${siteUrl()}/portal/cases/${caseId}`,
+  });
+  if ("error" in inv) return fail(502, inv.error);
+  await getRepo().updateCasePayment(pay.id, { provider: "nowpayments", provider_ref: inv.id, provider_price: price, provider_currency: cfg.priceCurrency });
+  await audit(d, { id: clientId, label: d.client.email }, "online_payment_started", pay.status, pay.status, { stage, invoiceId: inv.id });
+  return { ok: true, url: inv.url };
+}
+
+export type IpnOutcome = "verified" | "ignored" | "pending" | "rejected" | "unknown_order";
+
+/** Applies a signature-verified NOWPayments IPN. Idempotent; amounts are checked against OUR stored invoice. */
+export async function applyNowPaymentsIpn(ev: NowPaymentsIpn): Promise<IpnOutcome> {
+  const repo = getRepo();
+  const [caseId, stage] = String(ev.order_id ?? "").split(":");
+  if (!caseId || (stage !== "intake" && stage !== "review" && stage !== "submission")) return "unknown_order";
+  const d = await repo.getCaseDetail(caseId);
+  const pay = d && payment(d, stage);
+  if (!d || !pay) return "unknown_order";
+  const sys = { id: null, label: "provider:nowpayments" };
+  const status = String(ev.payment_status ?? "");
+  const pid = String(ev.payment_id ?? "");
+
+  if (status !== "finished") {
+    if (status === "partially_paid" || status === "failed" || status === "expired" || status === "refunded") {
+      await audit(d, sys, "provider_payment_issue", pay.status, status, { stage, providerPaymentId: pid });
+      if (status === "partially_paid") void notifyAdmins(`Partial crypto payment on ${d.case.reference}`, `NOWPayments reports a partial payment for case ${d.case.reference} (${stage}). Check the NOWPayments dashboard and contact the client.`).catch(() => {});
+      return "rejected";
+    }
+    return "pending"; // waiting / confirming / confirmed / sending
+  }
+
+  if (pay.status === "verified" || pay.status === "refunded") return "ignored"; // duplicate delivery
+  // Cross-check everything against what WE asked for.
+  const sameInvoice = pay.provider === "nowpayments" && pay.provider_ref !== null && String(ev.invoice_id ?? "") === pay.provider_ref;
+  const sameAmount = pay.provider_price !== null && Number(ev.price_amount) === Number(pay.provider_price);
+  const sameCurrency = String(ev.price_currency ?? "").toLowerCase() === (pay.provider_currency ?? "");
+  if (!sameInvoice || !sameAmount || !sameCurrency) {
+    await audit(d, sys, "provider_payment_rejected", pay.status, "mismatch", { stage, providerPaymentId: pid, sameInvoice, sameAmount, sameCurrency });
+    void notifyAdmins(`Crypto payment needs a manual check: ${d.case.reference}`, `A NOWPayments payment (${pid}) for case ${d.case.reference} did not match our invoice record. It was NOT verified automatically.`).catch(() => {});
+    return "rejected";
+  }
+  if (PAYING_STAGE[d.case.status] !== stage) {
+    await audit(d, sys, "provider_payment_rejected", pay.status, "not_awaiting", { stage, caseStatus: d.case.status, providerPaymentId: pid });
+    void notifyAdmins(`Late crypto payment: ${d.case.reference}`, `A NOWPayments payment (${pid}) arrived for case ${d.case.reference} (${stage}) but the case is "${d.case.status}". Review it manually / refund if needed.`).catch(() => {});
+    return "rejected";
+  }
+
+  await repo.updateCasePayment(pay.id, { status: "verified", bank_reference: `nowpayments:${pid}`, received_amount_pkr: pay.amount_pkr, verified_by: null, verified_at: new Date().toISOString() });
+  const next = NEXT_AFTER_PAYMENT[stage];
+  const moved = await repo.updateCase(caseId, { status: next }, d.case.status);
+  await audit(d, sys, "payment_status_changed", pay.status, "verified", { stage, providerPaymentId: pid, via: "nowpayments" });
+  if (moved) await audit(d, sys, "case_status_changed", d.case.status, next, { via: `payment_${stage}` });
+  void sendPlainEmail(d.client.email, `Payment received for case ${d.case.reference}`, `Dear ${d.client.full_name},\n\nWe have received your online payment for case ${d.case.reference}. Your invoice is available in your portal: ${siteUrl()}/portal/cases/${caseId}\n\n360 Consultancy`).catch(() => {});
+  void notifyAdmins(`Payment received: ${d.case.reference}`, `Case ${d.case.reference} (${stage}) was paid online and verified automatically (NOWPayments ${pid}).`).catch(() => {});
+  return "verified";
 }
 
 export type { CasePayment };

@@ -50,3 +50,21 @@ export function bankDetails() {
   const configured = Boolean(d.accountTitle && d.bankName && (d.accountNumber || d.iban));
   return { ...d, configured };
 }
+
+/** NOWPayments (crypto gateway). Enabled only when both the API key and the IPN secret are set. */
+export function nowPaymentsConfig() {
+  const apiKey = process.env.NOWPAYMENTS_API_KEY?.trim();
+  const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET?.trim();
+  if (!apiKey || !ipnSecret) return null;
+  const priceCurrency = (process.env.NOWPAYMENTS_PRICE_CURRENCY?.trim() || "pkr").toLowerCase();
+  const pkrPerUsd = Number(process.env.PKR_PER_USD) || 0;
+  if (priceCurrency === "usd" && pkrPerUsd <= 0) return null; // USD pricing needs an explicit rate
+  return {
+    apiKey,
+    ipnSecret,
+    priceCurrency,
+    pkrPerUsd,
+    payCurrency: (process.env.NOWPAYMENTS_PAY_CURRENCY?.trim() ?? "usdttrc20").toLowerCase(),
+    apiBase: process.env.NOWPAYMENTS_API_BASE?.trim() || "https://api.nowpayments.io",
+  };
+}

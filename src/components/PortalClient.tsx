@@ -77,6 +77,23 @@ export function NewCaseForm({ countries }: { countries: { slug: string; name: st
   );
 }
 
+export function PayOnlineButton({ caseId, stage }: { caseId: string; stage: CaseStage }) {
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="space-y-3">
+      {err && <Notice tone="error">{err}</Notice>}
+      <Button disabled={busy} onClick={async () => {
+        setBusy(true); setErr(null);
+        const r = await send(`/api/portal/cases/${caseId}/pay`, "POST", { stage });
+        if (r.ok && typeof r.url === "string") { window.location.href = r.url; return; }
+        setBusy(false); setErr(r.error ?? "Failed");
+      }}>{busy ? "Opening payment page…" : "Pay online (USDT / crypto)"}</Button>
+      <p className="text-xs text-muted">You will pay on the secure NOWPayments page. Your case unlocks automatically once the payment is confirmed on the blockchain (usually a few minutes).</p>
+    </div>
+  );
+}
+
 export function CaseActions(props: { caseId: string; payingStage: CaseStage | null; payStatus: string | null; canRequestReview: boolean; canAcceptQuote: boolean; canCancel: boolean }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);

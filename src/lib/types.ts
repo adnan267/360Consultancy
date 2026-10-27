@@ -305,6 +305,10 @@ export interface CasePayment {
   verified_at: string | null;
   created_at: string;
   invoice_no: string | null;
+  provider: string | null;
+  provider_ref: string | null;
+  provider_price: number | null;
+  provider_currency: string | null;
   updated_at: string;
 }
 
