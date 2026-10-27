@@ -1,14 +1,18 @@
-# Image asset manifest
+# Image list (generate in Flow, save in `public/images/` with these exact names)
 
-No stock or AI photos are bundled. Everything below is **not generated yet** — supply real photos (preferred for team/office) or generate from the prompt. Save to `public/images/` using the filename shown; WebP, under 150 KB each.
+Format: WebP (under 150 KB each; og-default must be PNG). Generate at 2x if possible, then export at the size shown.
+Common style line to add to every prompt: "photorealistic, natural light, clean modern look, navy blue and gold accent colours, no text, no logos, no watermark, no flags".
 
-| File | Size | Used on | Prompt / brief | Status |
+| # | File name | Size (px) | Used on | Prompt |
 |---|---|---|---|---|
-| hero-home.webp | 1600x900 | Home hero | Bright modern consultancy office in Pakistan, advisor helping a young student with documents, natural light, no logos | not generated |
-| about-team.webp | 1400x800 | About | Real team photo (use actual staff) | not provided |
-| study-abroad.webp | 1400x800 | Study Abroad | Students on a university campus, diverse, candid, no readable text | not generated |
-| pricing-hero.webp | 1400x600 | Pricing | Calm desk scene: passport, laptop, notebook | not generated |
-| og-default.png | 1200x630 | Social share | Logo on navy background | not generated |
-| blog-default.webp | 1200x630 | Blog fallback | Abstract travel/visa theme, no text | not generated |
+| 1 | hero-home.webp | 1600 x 900 | Home hero | A friendly South Asian consultant helping a young student review documents at a bright modern office desk, laptop and passport on the table, warm smiles |
+| 2 | study-abroad.webp | 1400 x 800 | Study Abroad page | A group of diverse international students walking on a green university campus with backpacks, candid, sunny day |
+| 3 | work-visa.webp | 1400 x 800 | Work visa / services | A young professional with a suitcase at a modern airport terminal window, aircraft outside, confident mood |
+| 4 | visit-visa.webp | 1400 x 800 | Visit visa / services | A couple looking at a city skyline from a viewpoint at sunset, travel mood |
+| 5 | pricing-hero.webp | 1400 x 600 | Pricing | Flat-lay desk scene: passport, notebook, pen, laptop, coffee cup, neat and calm |
+| 6 | about-office.webp | 1400 x 800 | About us (use a real team photo instead if you have one) | A welcoming consultancy reception area with a desk and seating, plants, daylight |
+| 7 | blog-default.webp | 1200 x 630 | Blog fallback cover | Abstract travel and documents concept: globe, passport and paper plane in soft blue tones |
+| 8 | og-default.png | 1200 x 630 | Social share preview | Solid deep navy background with a soft gold globe motif on the right; leave the left half empty (the logo is added by the site) |
 
-Rules: no flags of countries used as decoration of "approval", no fake testimonials/people, no embassy/government logos.
+Rules: no real people's faces from the internet, no fake testimonials, no embassy/government logos or country flags used to imply approval.
+Status: all 8 not generated yet. Once the files are in `public/images/`, tell me and I will wire them into the pages.
