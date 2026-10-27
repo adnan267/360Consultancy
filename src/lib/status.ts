@@ -39,11 +39,21 @@ export type Permission =
   | "lead:manage"
   | "case:view"
   | "case:manage"
-  | "settings:manage";
+  | "settings:manage"
+  | "document:view"
+  | "case:message"
+  | "content:manage"
+  | "team:manage";
 
+const ALL_PERMISSIONS: Permission[] = ["booking:view", "booking:note", "booking:status", "payment:verify", "service:manage", "export:csv", "audit:view", "lead:view", "lead:manage", "case:view", "case:manage", "settings:manage", "document:view", "case:message", "content:manage", "team:manage"];
+
+/** Least privilege: finance cannot open client documents; support cannot open them or move money; consultants cannot verify payments. */
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  admin: ["booking:view", "booking:note", "booking:status", "payment:verify", "service:manage", "export:csv", "audit:view", "lead:view", "lead:manage", "case:view", "case:manage", "settings:manage"],
-  staff: ["booking:view", "booking:note", "booking:status", "lead:view", "lead:manage", "case:view", "case:manage"],
+  admin: ALL_PERMISSIONS,
+  staff: ["booking:view", "booking:note", "booking:status", "lead:view", "lead:manage", "case:view", "case:manage", "document:view", "case:message"],
+  consultant: ["booking:view", "booking:note", "booking:status", "lead:view", "lead:manage", "case:view", "case:manage", "document:view", "case:message"],
+  finance: ["booking:view", "payment:verify", "export:csv", "audit:view", "case:view", "case:manage"],
+  support: ["booking:view", "booking:note", "lead:view", "lead:manage", "case:view", "case:message"],
 };
 
 export function can(role: Role, permission: Permission): boolean {

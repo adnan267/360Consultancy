@@ -30,7 +30,9 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
   refunded: "Refunded",
 };
 
-export type Role = "admin" | "staff";
+export const ROLES = ["admin", "staff", "consultant", "finance", "support"] as const;
+export type Role = (typeof ROLES)[number];
+export const ROLE_LABEL: Record<Role, string> = { admin: "Super Admin", staff: "Staff", consultant: "Consultant", finance: "Finance", support: "Customer Support" };
 
 export interface Service {
   id: string;
@@ -91,6 +93,7 @@ export interface Payment {
   received_amount_pkr: number | null;
   verified_by: string | null;
   verified_at: string | null;
+  invoice_no: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -267,6 +270,7 @@ export interface Client {
   consent_privacy_at: string;
   consent_terms_at: string;
   last_login_at: string | null;
+  email_verified_at: string | null;
   created_at: string;
 }
 
@@ -300,6 +304,7 @@ export interface CasePayment {
   verified_by: string | null;
   verified_at: string | null;
   created_at: string;
+  invoice_no: string | null;
   updated_at: string;
 }
 
@@ -335,3 +340,14 @@ export interface CaseListRow {
   status: CaseStatus;
   created_at: string;
 }
+
+// ── CMS, messages, requests ─────────────────────────────────────────────────
+export interface Faq { id: string; question: string; answer: string; sort_order: number; is_published: boolean }
+export interface BlogPost {
+  id: string; slug: string; title: string; excerpt: string; body: string;
+  meta_title: string | null; meta_description: string | null;
+  is_published: boolean; published_at: string | null; created_at: string; updated_at: string;
+}
+export interface CaseMessage { id: string; case_id: string; sender: "client" | "staff"; sender_label: string; body: string; internal: boolean; created_at: string }
+export interface DataRequest { id: string; client_id: string; kind: "export" | "delete"; status: "open" | "done" | "rejected"; note: string | null; created_at: string; handled_at: string | null }
+export interface AdminListRow { id: string; email: string; role: Role; is_active: boolean; last_login_at: string | null; created_at: string }

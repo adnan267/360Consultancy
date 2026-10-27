@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { BOOKING_STATUS_LABEL, LEAD_STATUSES, type BookingStatus, type LeadStatus, type PaymentStatus, type Role } from "@/lib/types";
+import { BOOKING_STATUS_LABEL, LEAD_STATUSES, ROLE_LABEL, type BookingStatus, type LeadStatus, type PaymentStatus, type Role } from "@/lib/types";
 import { BOOKING_TRANSITIONS } from "@/lib/status";
 import { Button, Notice } from "./ui";
 
@@ -316,5 +316,142 @@ export function AdminNavLink({ href, children, exact }: { href: string; children
     >
       {children}
     </a>
+  );
+}
+
+export function StaffMessageForm({ caseId }: { caseId: string }) {
+  const router = useRouter();
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <form className="mt-4 space-y-2" onSubmit={async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const fd = new FormData(form);
+      setBusy(true); setErr(null);
+      const r = await call(`/api/admin/cases/${caseId}/messages`, "POST", { body: fd.get("body"), internal: fd.get("internal") === "on" });
+      setBusy(false);
+      if (r.ok) { form.reset(); router.refresh(); } else setErr(r.error ?? "Failed");
+    }}>
+      {err && <Notice tone="error">{err}</Notice>}
+      <label htmlFor="staffmsg" className="sr-only">Message</label>
+      <textarea id="staffmsg" name="body" required maxLength={2000} rows={3} className={input} placeholder="Write a message to the client, or tick “internal note” to keep it staff-only…" />
+      <div className="flex flex-wrap items-center gap-4">
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="internal" className="size-4 accent-navy-800" />Internal note (client cannot see it)</label>
+        <Button type="submit" variant="dark" disabled={busy}>{busy ? "Sending…" : "Send"}</Button>
+      </div>
+    </form>
+  );
+}
+
+type FaqRow = { id: string; question: string; answer: string; sort_order: number; is_published: boolean };
+export function FaqManager({ initial }: { initial: FaqRow[] }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  async function run(fn: () => Promise<{ ok: boolean; error?: string }>, ok = "Saved") {
+    setBusy(true); setMsg(null);
+    const r = await fn();
+    setBusy(false);
+    if (r.ok) { setMsg({ tone: "success", text: ok }); router.refresh(); } else setMsg({ tone: "error", text: r.error ?? "Failed" });
+  }
+  return (
+    <div className="space-y-6">
+      {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+      {initial.length === 0 && (
+        <Notice tone="info" title="Using the built-in FAQs">The website currently shows the default questions. <button type="button" disabled={busy} className="font-semibold underline" onClick={() => run(() => call("/api/admin/faqs", "POST", { seedDefaults: true }), "Default FAQs imported — you can now edit them.")}>Import them here to edit</button>.</Notice>
+      )}
+      <ul className="space-y-4">
+        {initial.map((f) => (
+          <li key={f.id} className="rounded-2xl border border-navy-100 bg-white p-4">
+            <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); run(() => call(`/api/admin/faqs/${f.id}`, "PATCH", { question: fd.get("question"), answer: fd.get("answer"), sort_order: Number(fd.get("sort")), is_published: fd.get("pub") === "on" })); }}>
+              <input name="question" defaultValue={f.question} required maxLength={300} aria-label="Question" className={input} />
+              <textarea name="answer" defaultValue={f.answer} required maxLength={4000} rows={3} aria-label="Answer" className={input} />
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 text-sm">Order <input name="sort" type="number" min={0} defaultValue={f.sort_order} className={`${input} !w-24`} /></label>
+                <label className="flex items-center gap-2 text-sm"><input name="pub" type="checkbox" defaultChecked={f.is_published} className="size-4 accent-navy-800" />Published</label>
+                <Button type="submit" variant="dark" disabled={busy}>Save</Button>
+                <button type="button" className="text-sm font-semibold text-red-700 hover:underline" onClick={() => { if (window.confirm("Delete this FAQ?")) run(() => call(`/api/admin/faqs/${f.id}`, "DELETE"), "Deleted"); }}>Delete</button>
+              </div>
+            </form>
+          </li>
+        ))}
+      </ul>
+      <form className="space-y-3 rounded-2xl border border-dashed border-navy-200 p-4" onSubmit={(e) => { e.preventDefault(); const form = e.currentTarget; const fd = new FormData(form); run(async () => { const r = await call("/api/admin/faqs", "POST", { question: fd.get("question"), answer: fd.get("answer"), sort_order: 100 }); if (r.ok) form.reset(); return r; }, "FAQ added"); }}>
+        <h2 className="font-bold text-navy-900">Add a FAQ</h2>
+        <input name="question" required maxLength={300} placeholder="Question" aria-label="New question" className={input} />
+        <textarea name="answer" required maxLength={4000} rows={3} placeholder="Answer" aria-label="New answer" className={input} />
+        <Button type="submit" disabled={busy}>Add FAQ</Button>
+      </form>
+    </div>
+  );
+}
+
+type PostForm = { id?: string; slug: string; title: string; excerpt: string; body: string; meta_title: string | null; meta_description: string | null; is_published: boolean };
+export function BlogEditor({ post }: { post?: PostForm }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const slugify = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+  return (
+    <form className="max-w-3xl space-y-4" onSubmit={async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.currentTarget);
+      const body = { slug: String(fd.get("slug") || ""), title: fd.get("title"), excerpt: fd.get("excerpt") || "", body: fd.get("body") || "", meta_title: (fd.get("meta_title") as string) || null, meta_description: (fd.get("meta_description") as string) || null, is_published: fd.get("pub") === "on" };
+      setBusy(true); setMsg(null);
+      try {
+        const res = await fetch(post?.id ? `/api/admin/blog/${post.id}` : "/api/admin/blog", { method: post?.id ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { setMsg({ tone: "error", text: data?.error ?? "Failed" }); }
+        else if (!post?.id && data.id) { router.replace(`/admin/blog/${data.id}`); router.refresh(); }
+        else { setMsg({ tone: "success", text: "Saved" }); router.refresh(); }
+      } catch { setMsg({ tone: "error", text: "Network error" }); }
+      setBusy(false);
+    }}>
+      {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+      <div><label htmlFor="b_title" className="mb-1 block text-sm font-semibold">Title</label><input id="b_title" name="title" required minLength={3} maxLength={160} defaultValue={post?.title} className={input} onBlur={(e) => { const s = document.getElementById("b_slug") as HTMLInputElement | null; if (s && !s.value) s.value = slugify(e.target.value); }} /></div>
+      <div><label htmlFor="b_slug" className="mb-1 block text-sm font-semibold">URL slug</label><input id="b_slug" name="slug" required pattern="[a-z0-9-]{1,80}" maxLength={80} defaultValue={post?.slug} className={input} /><p className="mt-1 text-xs text-muted">Appears as /blog/your-slug. Lowercase letters, numbers, hyphens.</p></div>
+      <div><label htmlFor="b_excerpt" className="mb-1 block text-sm font-semibold">Short summary</label><textarea id="b_excerpt" name="excerpt" maxLength={300} rows={2} defaultValue={post?.excerpt} className={input} /></div>
+      <div><label htmlFor="b_body" className="mb-1 block text-sm font-semibold">Article</label><textarea id="b_body" name="body" rows={16} maxLength={60000} defaultValue={post?.body} className={`${input} font-mono`} /><p className="mt-1 text-xs text-muted">Plain text. Start a line with “## ” for a heading and “- ” for a bullet. Blank line = new paragraph. Only link to official sources and state facts you have verified.</p></div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div><label htmlFor="b_mt" className="mb-1 block text-sm font-semibold">SEO title <span className="font-normal text-muted">(optional)</span></label><input id="b_mt" name="meta_title" maxLength={70} defaultValue={post?.meta_title ?? ""} className={input} /></div>
+        <div><label htmlFor="b_md" className="mb-1 block text-sm font-semibold">SEO description <span className="font-normal text-muted">(optional)</span></label><input id="b_md" name="meta_description" maxLength={200} defaultValue={post?.meta_description ?? ""} className={input} /></div>
+      </div>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="pub" defaultChecked={post?.is_published} className="size-4 accent-navy-800" />Published (visible on the website)</label>
+      <div className="flex flex-wrap items-center gap-4">
+        <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save"}</Button>
+        {post?.id && <button type="button" className="text-sm font-semibold text-red-700 hover:underline" onClick={async () => { if (!window.confirm("Delete this post permanently?")) return; const r = await call(`/api/admin/blog/${post.id}`, "DELETE"); if (r.ok) { router.replace("/admin/blog"); router.refresh(); } else setMsg({ tone: "error", text: r.error ?? "Failed" }); }}>Delete post</button>}
+      </div>
+    </form>
+  );
+}
+
+export function TeamRow({ a, isSelf }: { a: { id: string; email: string; role: string; is_active: boolean }; isSelf: boolean }) {
+  const router = useRouter();
+  const [err, setErr] = useState<string | null>(null);
+  async function patch(body: object) { setErr(null); const r = await call(`/api/admin/team/${a.id}`, "PATCH", body); if (r.ok) router.refresh(); else setErr(r.error ?? "Failed"); }
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-3 py-3">
+      <span className="text-sm"><span className="font-semibold">{a.email}</span>{isSelf && <span className="text-muted"> (you)</span>}{!a.is_active && <span className="ml-2 rounded bg-navy-100 px-2 py-0.5 text-xs">Deactivated</span>}{err && <span className="block text-xs font-semibold text-red-700">{err}</span>}</span>
+      <span className="flex items-center gap-3">
+        <select aria-label={`Role for ${a.email}`} defaultValue={a.role} className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm" onChange={(e) => patch({ role: e.target.value })}>
+          {Object.entries(ROLE_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        <button type="button" className="text-sm font-semibold text-navy-700 hover:underline" onClick={() => patch({ is_active: !a.is_active })}>{a.is_active ? "Deactivate" : "Reactivate"}</button>
+      </span>
+    </li>
+  );
+}
+
+export function DataRequestActions({ id }: { id: string }) {
+  const router = useRouter();
+  const [err, setErr] = useState<string | null>(null);
+  async function set(status: "done" | "rejected") { setErr(null); const r = await call(`/api/admin/data-requests/${id}`, "PATCH", { status }); if (r.ok) router.refresh(); else setErr(r.error ?? "Failed"); }
+  return (
+    <span className="flex items-center gap-3 text-sm">
+      <button type="button" className="font-semibold text-emerald-700 hover:underline" onClick={() => set("done")}>Mark done</button>
+      <button type="button" className="font-semibold text-red-700 hover:underline" onClick={() => set("rejected")}>Reject</button>
+      {err && <span className="text-xs font-semibold text-red-700">{err}</span>}
+    </span>
   );
 }

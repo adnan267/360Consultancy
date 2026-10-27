@@ -16,6 +16,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // Money actions are admin-only; staff cannot verify, reject or refund payments.
   const action = (body as { action?: AdminCaseAction["action"] } | null)?.action;
   if (action && ADMIN_MONEY_ACTIONS.has(action) && !can(s.role, "payment:verify")) return jsonError(403, "You do not have permission to do this");
+  if (action && !ADMIN_MONEY_ACTIONS.has(action) && !can(s.role, "document:view")) return jsonError(403, "You do not have permission to do this");
   try {
     const r = await applyCaseAdminAction(id, body, actorOf(s));
     if (!r.ok) return json({ ok: false, error: r.error, fields: r.fields }, r.status);

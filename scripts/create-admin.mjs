@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // Creates (or resets the password of) an admin user.
-// Usage: SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/create-admin.mjs <email> [admin|staff]
+// Usage: SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/create-admin.mjs <email> [admin|staff|consultant|finance|support]
 // The password is read from the prompt (not from argv, so it never lands in shell history).
 import bcrypt from "bcryptjs";
 import { createClient } from "@supabase/supabase-js";
 import { createInterface } from "node:readline";
 
 const [email, role = "admin"] = process.argv.slice(2);
-if (!email || !["admin", "staff"].includes(role)) {
-  console.error("Usage: node scripts/create-admin.mjs <email> [admin|staff]");
+if (!email || !["admin", "staff", "consultant", "finance", "support"].includes(role)) {
+  console.error("Usage: node scripts/create-admin.mjs <email> [admin|staff|consultant|finance|support]");
   process.exit(1);
 }
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;

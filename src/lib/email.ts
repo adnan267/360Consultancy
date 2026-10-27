@@ -147,6 +147,16 @@ export async function sendNotification(kind: NotificationKind, ctx: Notification
   return deliver(msg);
 }
 
+/** True when a real email provider is configured. Account-verification rules only apply when this is true. */
+export function emailEnabled(): boolean {
+  return getEmailProvider().name !== "disabled";
+}
+
+/** Sends a plain transactional email (account emails, alerts). Never throws. */
+export async function sendPlainEmail(to: string, subject: string, text: string): Promise<SendResult> {
+  return deliver({ to, subject, text: `${text}${FOOTER}` });
+}
+
 async function deliver(msg: EmailMessage): Promise<SendResult> {
   try {
     const settings = await getSiteSettings();

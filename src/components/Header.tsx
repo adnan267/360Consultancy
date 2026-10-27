@@ -21,10 +21,12 @@ const COUNTRY_MENU = [
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Visa Services" },
+  { href: "/study-abroad", label: "Study Abroad" },
   { href: "/countries", label: "Countries" },
   { href: "/scholarships", label: "Scholarships" },
   { href: "/tools", label: "Tools" },
   { href: "/how-it-works", label: "How It Works" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact" },
 ];

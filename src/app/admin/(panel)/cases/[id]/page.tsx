@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { PaymentStatusBadge, pkt } from "@/components/admin";
 import { CaseAdminActions } from "@/components/AdminCaseClient";
+import { StaffMessageForm } from "@/components/AdminClient";
 import { Badge, Card, Notice } from "@/components/ui";
 import { getSession } from "@/lib/auth";
 import { formatPkr } from "@/lib/pricing";
@@ -22,6 +23,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
   const d = await getRepo().getCaseDetail(id);
   if (!d) notFound();
   const { case: c } = d;
+  const messages = await getRepo().listCaseMessages(id, { includeInternal: true });
   const events = [...d.events].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
 
   return (
@@ -54,7 +56,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         </Card>
       </div>
 
-      <Card>
+      {can(session.role, "document:view") ? <Card>
         <h2 className="font-bold text-navy-900">Documents ({d.documents.length})</h2>
         {d.documents.length ? (
           <ul className="mt-3 divide-y divide-line text-sm">{d.documents.map((x) => (
@@ -65,13 +67,26 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
           ))}</ul>
         ) : <p className="mt-2 text-sm text-muted">Nothing uploaded yet.</p>}
         <p className="mt-3 text-xs text-muted">Downloads are logged. Files are not virus-scanned — open them in a safe viewer.</p>
-      </Card>
+      </Card> : <Card><p className="text-sm text-muted">Your role does not include access to client documents.</p></Card>}
 
       {c.review_report && <Card><h2 className="font-bold text-navy-900">Review report sent to client</h2><p className="mt-2 whitespace-pre-wrap text-sm">{c.review_report}</p>{c.submission_quote_pkr && <p className="mt-2 text-sm font-semibold">Quote: {formatPkr(c.submission_quote_pkr)}</p>}</Card>}
 
       <Card>
         <h2 className="mb-4 font-bold text-navy-900">Actions</h2>
         <CaseAdminActions caseId={c.id} status={c.status} role={session.role} quotePkr={c.submission_quote_pkr} payments={d.payments.map((p) => ({ stage: p.stage, status: p.status, amountPkr: p.amount_pkr }))} documents={d.documents.map((x) => ({ id: x.id, name: x.original_name, status: x.status }))} />
+      </Card>
+
+      <Card>
+        <h2 className="font-bold text-navy-900">Messages &amp; internal notes</h2>
+        {messages.length === 0 ? <p className="mt-2 text-sm text-muted">No messages yet.</p> : (
+          <ul className="mt-3 space-y-3">{messages.map((m) => (
+            <li key={m.id} className={`rounded-xl p-3 text-sm ${m.internal ? "border border-amber-300 bg-amber-50" : m.sender === "client" ? "bg-mist" : "bg-navy-50"}`}>
+              <p className="whitespace-pre-wrap">{m.body}</p>
+              <p className="mt-1 text-[11px] text-muted">{m.internal ? "INTERNAL NOTE · staff only" : m.sender === "client" ? m.sender_label : "Sent to client"} · {pkt(m.created_at)}</p>
+            </li>
+          ))}</ul>
+        )}
+        {can(session.role, "case:message") && <StaffMessageForm caseId={c.id} />}
       </Card>
 
       <Card>

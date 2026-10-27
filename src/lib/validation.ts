@@ -148,3 +148,35 @@ export const settingsPatchSchema = z.strictObject({
   notify_emails: z.array(plainEmail).max(10).transform((a) => [...new Set(a)]).optional(),
 });
 export type SettingsPatch = z.infer<typeof settingsPatchSchema>;
+
+export const forgotPasswordSchema = z.strictObject({ email: z.email().max(254).transform((v) => v.toLowerCase()) });
+export const resetPasswordSchema = z.strictObject({
+  token: z.string().min(20).max(100),
+  password: z.string().min(10, "Use at least 10 characters").max(72, "Use at most 72 characters"),
+});
+export const tokenOnlySchema = z.strictObject({ token: z.string().min(20).max(100) });
+
+export const faqSchema = z.strictObject({
+  question: z.string().trim().min(3).max(300),
+  answer: z.string().trim().min(3).max(4000),
+  sort_order: z.number().int().min(0).max(10_000).optional(),
+  is_published: z.boolean().optional(),
+});
+export const faqPatchSchema = faqSchema.partial();
+
+export const blogSchema = z.strictObject({
+  slug: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{1,80}$/, "Use lowercase letters, numbers and hyphens only"),
+  title: z.string().trim().min(3).max(160),
+  excerpt: z.string().trim().max(300).default(""),
+  body: z.string().max(60_000).default(""),
+  meta_title: z.string().trim().max(70).nullable().optional(),
+  meta_description: z.string().trim().max(200).nullable().optional(),
+  is_published: z.boolean().default(false),
+});
+export const blogPatchSchema = blogSchema.partial();
+
+export const caseMessageSchema = z.strictObject({ body: z.string().trim().min(1, "Write a message").max(2000) });
+export const staffMessageSchema = z.strictObject({ body: z.string().trim().min(1).max(2000), internal: z.boolean().default(false) });
+export const dataRequestSchema = z.strictObject({ kind: z.enum(["export", "delete"]), note: z.string().trim().max(1000).optional() });
+export const dataRequestPatchSchema = z.strictObject({ status: z.enum(["done", "rejected"]) });
+export const teamPatchSchema = z.strictObject({ role: z.enum(["admin", "staff", "consultant", "finance", "support"]).optional(), is_active: z.boolean().optional() });

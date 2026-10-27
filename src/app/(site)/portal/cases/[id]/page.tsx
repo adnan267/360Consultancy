@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { pkt, PaymentStatusBadge } from "@/components/admin";
-import { CaseActions, DeleteDocButton, PortalLogout, UploadForm } from "@/components/PortalClient";
+import { CaseActions, DeleteDocButton, MessageBox, PortalLogout, UploadForm } from "@/components/PortalClient";
 import { Badge, Card, Container, Notice } from "@/components/ui";
 import { getClientCase, MAX_DOCS_PER_CASE } from "@/lib/cases";
 import { PAYING_STAGE, UPLOADS_OPEN } from "@/lib/case-status";
+import { getRepo } from "@/lib/repo";
 import { getClientSession } from "@/lib/client-auth";
 import { bankDetails } from "@/lib/env";
 import { formatPkr } from "@/lib/pricing";
@@ -33,6 +34,8 @@ export default async function PortalCase({ params }: { params: Promise<{ id: str
   const d = await getClientCase(s.sub, id);
   if (!d) notFound();
   const { case: c } = d;
+  const messages = await getRepo().listCaseMessages(c.id, { includeInternal: false });
+  const invoices = d.payments.filter((p) => p.status === "verified" && p.invoice_no);
   const stage = PAYING_STAGE[c.status] ?? null;
   const pay = stage ? d.payments.find((p) => p.stage === stage) : undefined;
   const bank = bankDetails();
@@ -129,6 +132,28 @@ export default async function PortalCase({ params }: { params: Promise<{ id: str
       {["awaiting_intake_payment", "awaiting_review_payment", "awaiting_submission_payment"].includes(c.status) && !d.payments.some((p) => p.status === "verified" || p.status === "under_review") && (
         <CaseActions caseId={c.id} payingStage={null} payStatus={null} canRequestReview={false} canAcceptQuote={false} canCancel />
       )}
+
+      {invoices.length > 0 && (
+        <Card>
+          <h2 className="font-bold text-navy-900">Invoices &amp; receipts</h2>
+          <ul className="mt-3 divide-y divide-line text-sm">{invoices.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-2"><span><span className="font-mono font-semibold">{p.invoice_no}</span> <span className="text-muted">· {CASE_STAGE_LABEL[p.stage]} · {formatPkr(p.amount_pkr)}</span></span><a className="font-semibold text-navy-700 underline underline-offset-4" href={`/portal/cases/${c.id}/invoice/${p.id}`} target="_blank" rel="noopener">View / print</a></li>
+          ))}</ul>
+        </Card>
+      )}
+
+      <Card>
+        <h2 className="font-bold text-navy-900">Messages</h2>
+        {messages.length === 0 ? <p className="mt-2 text-sm text-muted">No messages yet. Write to our team below — we reply here and by email.</p> : (
+          <ul className="mt-3 space-y-3">{messages.map((m) => (
+            <li key={m.id} className={`max-w-[85%] rounded-xl p-3 text-sm ${m.sender === "client" ? "ml-auto bg-navy-900 text-white" : "bg-mist text-navy-900"}`}>
+              <p className="whitespace-pre-wrap">{m.body}</p>
+              <p className={`mt-1 text-[11px] ${m.sender === "client" ? "text-navy-200" : "text-muted"}`}>{m.sender === "client" ? "You" : m.sender_label} · {pkt(m.created_at)}</p>
+            </li>
+          ))}</ul>
+        )}
+        <MessageBox caseId={c.id} />
+      </Card>
 
       <Card>
         <h2 className="font-bold text-navy-900">Activity</h2>

@@ -124,7 +124,7 @@ export function Wizard({ leadsEnabled, countries, services }: Props) {
         </ol>
       </div>
 
-      <Card className="p-6 sm:p-8">
+      <Card key={step} className="animate-step p-6 sm:p-8">
         <h2 ref={heading} tabIndex={-1} className="mb-6 text-2xl font-extrabold text-navy-900 outline-none">
           {step === "purpose" && "What are you planning?"}
           {step === "destination" && "Where would you like to go?"}

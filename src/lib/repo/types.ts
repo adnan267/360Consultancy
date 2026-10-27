@@ -1,4 +1,10 @@
 import type {
+  AdminListRow,
+  BlogPost,
+  CaseMessage,
+  DataRequest,
+  Faq,
+  Role,
   AdminUser,
   Case,
   CaseDetail,
@@ -133,6 +139,12 @@ export interface Repo {
   getClientByEmail(email: string): Promise<Client | null>;
   getClientById(id: string): Promise<Client | null>;
   recordClientLogin(id: string): Promise<void>;
+  /** Replaces any unused token of the same kind for this client. Only the sha256 hash is stored. */
+  issueClientToken(clientId: string, kind: "verify" | "reset", tokenHash: string, expiresAt: Date): Promise<void>;
+  /** Atomically marks a valid, unused, unexpired token used and returns its client id (null if invalid). */
+  consumeClientToken(kind: "verify" | "reset", tokenHash: string): Promise<string | null>;
+  setClientPassword(id: string, passwordHash: string): Promise<void>;
+  markClientVerified(id: string): Promise<void>;
 
   insertCase(row: NewCaseRow): Promise<CaseDetail>; // also creates the intake payment; throws DuplicateReferenceError
   getCaseDetail(id: string): Promise<CaseDetail | null>;
@@ -158,6 +170,27 @@ export interface Repo {
   getAdminByEmail(email: string): Promise<AdminUser | null>;
   recordAdminLogin(id: string): Promise<void>;
   setAdminPassword(id: string, passwordHash: string): Promise<void>;
+
+  // ── CMS ──
+  listFaqs(opts?: { publishedOnly?: boolean }): Promise<Faq[]>;
+  saveFaq(row: { id?: string; question: string; answer: string; sort_order?: number; is_published?: boolean }): Promise<Faq | null>;
+  deleteFaq(id: string): Promise<void>;
+  listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }): Promise<BlogPost[]>;
+  getBlogPost(key: { id?: string; slug?: string }, opts?: { publishedOnly?: boolean }): Promise<BlogPost | null>;
+  saveBlogPost(row: { id?: string; slug: string; title: string; excerpt: string; body: string; meta_title: string | null; meta_description: string | null; is_published: boolean }): Promise<BlogPost>;
+  deleteBlogPost(id: string): Promise<void>;
+
+  // ── case messages ──
+  listCaseMessages(caseId: string, opts: { includeInternal: boolean }): Promise<CaseMessage[]>;
+  addCaseMessage(row: { case_id: string; sender: "client" | "staff"; sender_label: string; body: string; internal: boolean }): Promise<CaseMessage>;
+
+  // ── data requests / team ──
+  insertDataRequest(row: { client_id: string; kind: "export" | "delete"; note: string | null }): Promise<DataRequest>;
+  listDataRequests(opts?: { status?: DataRequest["status"] }): Promise<(DataRequest & { client_email: string })[]>;
+  setDataRequestStatus(id: string, status: "done" | "rejected"): Promise<DataRequest | null>;
+  listAdmins(): Promise<AdminListRow[]>;
+  getAdminById(id: string): Promise<AdminListRow | null>;
+  updateAdmin(id: string, patch: { role?: Role; is_active?: boolean }): Promise<AdminListRow | null>;
 
   /** Raw admin-editable settings rows as key → JSON value. */
   getSettings(): Promise<Record<string, unknown>>;

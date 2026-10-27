@@ -1,15 +1,16 @@
 import { randomUUID } from "node:crypto";
+import { sendVerificationEmail, verificationRequired } from "./account";
 import { hashPassword, verifyPassword } from "./auth";
 import type { Result } from "./bookings";
 import { CASE_TRANSITIONS, FINAL_STATUSES, NEXT_AFTER_PAYMENT, PAYING_STAGE, UPLOADS_OPEN, canTransitionCase } from "./case-status";
-import { notifyAdmins } from "./email";
-import { portalEnabled } from "./env";
+import { notifyAdmins, sendPlainEmail } from "./email";
+import { portalEnabled, siteUrl } from "./env";
 import { generateCaseReference } from "./reference";
 import { getRepo, isDatabaseConfigured } from "./repo";
 import { DuplicateEmailError, DuplicateReferenceError } from "./repo/types";
 import { canTransitionPayment } from "./status";
 import { getStorage, isStorageConfigured } from "./storage";
-import type { Actor, Case, CaseDetail, CaseDocument, CasePayment, CaseStage, Client } from "./types";
+import { CASE_STATUS_LABEL, type Actor, type Case, type CaseDetail, type CaseDocument, type CasePayment, type CaseStage, type Client } from "./types";
 import { adminCaseActionSchema, clientCaseActionSchema, clientLoginSchema, clientRegisterSchema, createCaseSchema, uploadMetaSchema, type AdminCaseAction } from "./validation";
 
 const fail = (status: number, error: string, fields?: Record<string, string[]>) => ({ ok: false as const, status, error, fields });
@@ -49,6 +50,7 @@ export async function registerClient(input: unknown, ctx: { ip: string }): Promi
   if (v.website) return fail(422, "Please check the highlighted fields."); // honeypot
   try {
     const c = await repo.createClientAccount({ email: v.email, password_hash: await hashPassword(v.password), full_name: v.fullName, phone: v.phone ?? null });
+    await sendVerificationEmail(c);
     return { ok: true, client: pub(c) };
   } catch (e) {
     if (e instanceof DuplicateEmailError) return fail(409, "An account with this email already exists. Please sign in.");
@@ -81,6 +83,7 @@ export async function createCase(clientId: string, input: unknown): Promise<Resu
   if (!p.success) return fail(422, "Please choose a destination and purpose.", zodFields(p.error.issues));
   const [client, country, intake, mine] = await Promise.all([repo.getClientById(clientId), repo.getCountryBySlug(p.data.countrySlug), repo.getServiceBySlug(INTAKE_SERVICE_SLUG), repo.listCasesForClient(clientId)]);
   if (!client || !client.is_active) return fail(401, "Please sign in");
+  if (verificationRequired() && !client.email_verified_at) return fail(403, "Please verify your email address first. Check your inbox, or use the resend button on your portal page.");
   if (!country || !country.is_active) return fail(422, "That destination is not available.", { countrySlug: ["Choose a destination"] });
   if (!intake || !intake.is_active || intake.fee_pkr <= 0) return fail(503, "This service is not available right now.");
   if (mine.filter((c) => !FINAL_STATUSES.includes(c.status)).length >= MAX_OPEN_CASES) return fail(409, "You already have several open cases. Please finish or cancel one first.");
@@ -337,7 +340,12 @@ export async function applyCaseAdminAction(caseId: string, input: unknown, actor
       break;
     }
   }
-  return { ok: true, detail: (await repo.getCaseDetail(caseId))! };
+  const detail = (await repo.getCaseDetail(caseId))!;
+  // Tell the client about real progress (never about internal notes). Best-effort: a failed email never fails the action.
+  if (a.action !== "add_note") {
+    void sendPlainEmail(d.client.email, `Update on your case ${d.case.reference}`, `Dear ${d.client.full_name},\n\nThere is an update on your case ${d.case.reference}. Its status is now: ${CASE_STATUS_LABEL[detail.case.status]}.\n\nSign in to your portal to see details and any next steps: ${siteUrl()}/portal/cases/${d.case.id}`).catch(() => {});
+  }
+  return { ok: true, detail };
 }
 
 export type { CasePayment };

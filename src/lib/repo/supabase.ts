@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { supabaseConfig } from "../env";
-import type { Case, CaseDetail, CaseDocument, CaseListRow, CasePayment, CaseStage, CaseStatus, Client, DocStatus, AdminUser, AuditEntry, Lead, LeadStatus, Scholarship, ScholarshipFilter, Booking, BookingDetail, BookingFilter, BookingListRow, Country, Payment, Service } from "../types";
+import type { AdminListRow, BlogPost, CaseMessage, DataRequest, Faq, Role, Case, CaseDetail, CaseDocument, CaseListRow, CasePayment, CaseStage, CaseStatus, Client, DocStatus, AdminUser, AuditEntry, Lead, LeadStatus, Scholarship, ScholarshipFilter, Booking, BookingDetail, BookingFilter, BookingListRow, Country, Payment, Service } from "../types";
 import type { ServicePatch } from "../validation";
 import { DuplicateEmailError, DuplicateReferenceError, type CasePatch, type CasePaymentPatch, type CaseStats, type NewCaseRow, type NewClientRow, type NewDocumentRow, type NewBookingRow, type NewLeadRow, type NewPaymentEventRow, type Report, type PaymentPatch, type Repo, type Stats } from "./types";
 
@@ -212,6 +212,27 @@ export class SupabaseRepo implements Repo {
     await db().from("clients").update({ last_login_at: new Date().toISOString() }).eq("id", id);
   }
 
+  async issueClientToken(clientId: string, kind: "verify" | "reset", tokenHash: string, expiresAt: Date) {
+    const del = await db().from("client_tokens").delete().eq("client_id", clientId).eq("kind", kind).is("used_at", null);
+    fail(del.error, "issueClientToken.cleanup");
+    const { error } = await db().from("client_tokens").insert({ client_id: clientId, kind, token_hash: tokenHash, expires_at: expiresAt.toISOString() });
+    fail(error, "issueClientToken");
+  }
+  async consumeClientToken(kind: "verify" | "reset", tokenHash: string) {
+    const now = new Date().toISOString();
+    const { data, error } = await db().from("client_tokens").update({ used_at: now }).eq("kind", kind).eq("token_hash", tokenHash).is("used_at", null).gt("expires_at", now).select("client_id").maybeSingle();
+    fail(error, "consumeClientToken");
+    return (data as { client_id: string } | null)?.client_id ?? null;
+  }
+  async setClientPassword(id: string, passwordHash: string) {
+    const { error } = await db().from("clients").update({ password_hash: passwordHash }).eq("id", id);
+    fail(error, "setClientPassword");
+  }
+  async markClientVerified(id: string) {
+    const { error } = await db().from("clients").update({ email_verified_at: new Date().toISOString() }).eq("id", id).is("email_verified_at", null);
+    fail(error, "markClientVerified");
+  }
+
   async insertCase(row: NewCaseRow) {
     const { intake_amount_pkr, ...caseRow } = row;
     const { data, error } = await db().from("cases").insert(caseRow).select("*").single();
@@ -380,6 +401,105 @@ export class SupabaseRepo implements Repo {
   }
   async recordAdminLogin(id: string) {
     await db().from("admin_users").update({ last_login_at: new Date().toISOString() }).eq("id", id);
+  }
+
+  async listFaqs(opts?: { publishedOnly?: boolean }) {
+    let q = db().from("faqs").select("id,question,answer,sort_order,is_published").order("sort_order").order("created_at");
+    if (opts?.publishedOnly) q = q.eq("is_published", true);
+    const { data, error } = await q;
+    fail(error, "listFaqs");
+    return (data ?? []) as Faq[];
+  }
+  async saveFaq(row: { id?: string; question: string; answer: string; sort_order?: number; is_published?: boolean }) {
+    const { id, ...fields } = row;
+    const { data, error } = id
+      ? await db().from("faqs").update(fields).eq("id", id).select("id,question,answer,sort_order,is_published").maybeSingle()
+      : await db().from("faqs").insert(fields).select("id,question,answer,sort_order,is_published").single();
+    fail(error, "saveFaq");
+    return (data as Faq | null) ?? null;
+  }
+  async deleteFaq(id: string) {
+    const { error } = await db().from("faqs").delete().eq("id", id);
+    fail(error, "deleteFaq");
+  }
+  async listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }) {
+    let q = db().from("blog_posts").select("*").order("published_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(opts?.limit ?? 200);
+    if (opts?.publishedOnly) q = q.eq("is_published", true);
+    const { data, error } = await q;
+    fail(error, "listBlogPosts");
+    return (data ?? []) as BlogPost[];
+  }
+  async getBlogPost(key: { id?: string; slug?: string }, opts?: { publishedOnly?: boolean }) {
+    let q = db().from("blog_posts").select("*");
+    q = key.id ? q.eq("id", key.id) : q.eq("slug", key.slug ?? "");
+    if (opts?.publishedOnly) q = q.eq("is_published", true);
+    const { data, error } = await q.maybeSingle();
+    fail(error, "getBlogPost");
+    return (data as BlogPost | null) ?? null;
+  }
+  async saveBlogPost(row: { id?: string; slug: string; title: string; excerpt: string; body: string; meta_title: string | null; meta_description: string | null; is_published: boolean }) {
+    const { id, ...fields } = row;
+    const now = new Date().toISOString();
+    if (id) {
+      const cur = await this.getBlogPost({ id });
+      const published_at = fields.is_published ? (cur?.is_published ? cur.published_at : now) : (cur?.published_at ?? null);
+      const { data, error } = await db().from("blog_posts").update({ ...fields, published_at }).eq("id", id).select("*").single();
+      if (error?.code === "23505") throw new DuplicateReferenceError();
+      fail(error, "saveBlogPost");
+      return data as BlogPost;
+    }
+    const { data, error } = await db().from("blog_posts").insert({ ...fields, published_at: fields.is_published ? now : null }).select("*").single();
+    if (error?.code === "23505") throw new DuplicateReferenceError();
+    fail(error, "saveBlogPost");
+    return data as BlogPost;
+  }
+  async deleteBlogPost(id: string) {
+    const { error } = await db().from("blog_posts").delete().eq("id", id);
+    fail(error, "deleteBlogPost");
+  }
+  async listCaseMessages(caseId: string, opts: { includeInternal: boolean }) {
+    let q = db().from("case_messages").select("*").eq("case_id", caseId).order("created_at");
+    if (!opts.includeInternal) q = q.eq("internal", false);
+    const { data, error } = await q;
+    fail(error, "listCaseMessages");
+    return (data ?? []) as CaseMessage[];
+  }
+  async addCaseMessage(row: { case_id: string; sender: "client" | "staff"; sender_label: string; body: string; internal: boolean }) {
+    const { data, error } = await db().from("case_messages").insert(row).select("*").single();
+    fail(error, "addCaseMessage");
+    return data as CaseMessage;
+  }
+  async insertDataRequest(row: { client_id: string; kind: "export" | "delete"; note: string | null }) {
+    const { data, error } = await db().from("data_requests").insert(row).select("*").single();
+    fail(error, "insertDataRequest");
+    return data as DataRequest;
+  }
+  async listDataRequests(opts?: { status?: "open" | "done" | "rejected" }) {
+    let q = db().from("data_requests").select("*, clients(email)").order("created_at", { ascending: false }).limit(200);
+    if (opts?.status) q = q.eq("status", opts.status);
+    const { data, error } = await q;
+    fail(error, "listDataRequests");
+    return ((data ?? []) as (DataRequest & { clients: { email: string } | null })[]).map(({ clients, ...r }) => ({ ...r, client_email: clients?.email ?? "" }));
+  }
+  async setDataRequestStatus(id: string, status: "done" | "rejected") {
+    const { data, error } = await db().from("data_requests").update({ status, handled_at: new Date().toISOString() }).eq("id", id).select("*").maybeSingle();
+    fail(error, "setDataRequestStatus");
+    return (data as DataRequest | null) ?? null;
+  }
+  async listAdmins() {
+    const { data, error } = await db().from("admin_users").select("id,email,role,is_active,last_login_at,created_at").order("created_at");
+    fail(error, "listAdmins");
+    return (data ?? []) as AdminListRow[];
+  }
+  async getAdminById(id: string) {
+    const { data, error } = await db().from("admin_users").select("id,email,role,is_active,last_login_at,created_at").eq("id", id).maybeSingle();
+    fail(error, "getAdminById");
+    return (data as AdminListRow | null) ?? null;
+  }
+  async updateAdmin(id: string, patch: { role?: Role; is_active?: boolean }) {
+    const { data, error } = await db().from("admin_users").update(patch).eq("id", id).select("id,email,role,is_active,last_login_at,created_at").maybeSingle();
+    fail(error, "updateAdmin");
+    return (data as AdminListRow | null) ?? null;
   }
 
   async getSettings() {

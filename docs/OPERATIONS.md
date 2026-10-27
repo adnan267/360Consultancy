@@ -32,3 +32,15 @@ Create/reset: `npm run create-admin -- email role`. Roles: `admin` (everything) 
 - Run `select purge_expired_cases();` on a schedule once retention is decided (`cases.delete_after` is a 2-year placeholder). Also delete the matching files from the `case-documents` bucket — the SQL function removes rows only.
 - Reset a client's password manually: update `clients.password_hash` with a bcrypt hash (cost 12) generated locally.
 - Document downloads by staff appear in the case timeline (`document_downloaded`).
+
+## Accounts, roles and email (migrations 0008–0011)
+- Roles: admin, staff, consultant, finance, support (least privilege; only admin manages content/team/settings). Add team with `npm run create-admin -- email role`.
+- Client email verification and password reset need a working email provider (`EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, verified sender domain). Until then verification is NOT enforced and reset shows "contact us".
+- Optional: `NEXT_PUBLIC_GA_ID` (loads only after cookie consent), `NEXT_PUBLIC_GSC_VERIFICATION`.
+- Editable in admin: SEO settings, FAQs, blog, team, data requests (export/delete), case messages (internal notes are staff-only).
+- Invoice numbers (INV-YYYY-NNNNNN) are assigned by DB trigger when a payment is verified.
+
+## Known limitations
+- Uploads are checked by size/type/magic bytes but not virus-scanned.
+- No online payment gateway; payments are bank transfer verified by staff.
+- Images are a manifest only (docs/ASSETS.md).

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { NewCaseForm, PortalLogout } from "@/components/PortalClient";
-import { Badge, Card, Container } from "@/components/ui";
+import { DataRequestForm, NewCaseForm, PortalLogout, ResendVerification } from "@/components/PortalClient";
+import { Badge, Card, Container, Notice } from "@/components/ui";
+import { verificationRequired } from "@/lib/account";
 import { getClientSession } from "@/lib/client-auth";
 import { formatPkr } from "@/lib/pricing";
 import { getRepo } from "@/lib/repo";
@@ -22,6 +23,10 @@ export default async function PortalHome() {
         <div><p className="text-sm text-muted">Welcome</p><h1 className="text-2xl font-extrabold text-navy-900">{client.full_name}</h1></div>
         <PortalLogout />
       </div>
+
+      {verificationRequired() && !client.email_verified_at && (
+        <Notice tone="warn" title="Please verify your email">We sent a link to {client.email}. You need to verify it before starting a case. <ResendVerification /></Notice>
+      )}
 
       <Card>
         <h2 className="font-bold text-navy-900">Start a new case</h2>
@@ -46,6 +51,11 @@ export default async function PortalHome() {
           ))}</ul>
         ) : <p className="text-sm text-muted">No cases yet.</p>}
       </section>
+      <Card>
+        <h2 className="font-bold text-navy-900">Your data</h2>
+        <p className="mt-1 mb-4 text-sm text-muted">You can ask for a copy of the personal data we hold about you, or ask us to delete your account. Our team reviews every request.</p>
+        <DataRequestForm />
+      </Card>
     </Container>
   );
 }

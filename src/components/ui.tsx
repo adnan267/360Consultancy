@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { Reveal } from "./Reveal";
 
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
@@ -58,7 +59,7 @@ export function SectionHeading({ eyebrow, title, intro, align = "left", light }:
 export function Section({ className, tone = "white", children, id }: { className?: string; tone?: "white" | "mist" | "navy"; children: ReactNode; id?: string }) {
   return (
     <section id={id} className={cx("py-16 sm:py-24", tone === "mist" && "bg-mist", tone === "navy" && "bg-navy-900 text-white", className)}>
-      <Container>{children}</Container>
+      <Container><Reveal>{children}</Reveal></Container>
     </section>
   );
 }

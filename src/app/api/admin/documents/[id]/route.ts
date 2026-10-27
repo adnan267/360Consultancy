@@ -6,7 +6,7 @@ import { getRepo } from "@/lib/repo";
 import { jsonError } from "@/lib/security";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const s = await requireAdmin(req, "case:view");
+  const s = await requireAdmin(req, "document:view");
   if (s instanceof Response) return s;
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) return jsonError(404, "Not found");

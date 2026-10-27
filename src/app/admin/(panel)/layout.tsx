@@ -25,6 +25,10 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           {can(session.role, "lead:view") && <AdminNavLink href="/admin/leads">Leads</AdminNavLink>}
           {can(session.role, "payment:verify") && <AdminNavLink href="/admin/reports">Reports</AdminNavLink>}
           {can(session.role, "service:manage") && <AdminNavLink href="/admin/services">Services &amp; pricing</AdminNavLink>}
+          {can(session.role, "content:manage") && <AdminNavLink href="/admin/faqs">FAQs</AdminNavLink>}
+          {can(session.role, "content:manage") && <AdminNavLink href="/admin/blog">Blog</AdminNavLink>}
+          {can(session.role, "team:manage") && <AdminNavLink href="/admin/team">Team</AdminNavLink>}
+          {can(session.role, "team:manage") && <AdminNavLink href="/admin/data-requests">Data requests</AdminNavLink>}
           {can(session.role, "settings:manage") && <AdminNavLink href="/admin/settings">Settings</AdminNavLink>}
           {can(session.role, "export:csv") && <a href="/api/admin/export" className="block whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold text-navy-100 hover:bg-white/10 hover:text-white">Export CSV</a>}
         </nav>

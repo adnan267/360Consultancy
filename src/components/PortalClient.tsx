@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DOC_TYPES, DOC_TYPE_LABEL, CASE_PURPOSES, type CaseStage } from "@/lib/types";
 import { Button, Notice } from "./ui";
 
@@ -131,4 +131,120 @@ export function UploadForm({ caseId }: { caseId: string }) {
 export function DeleteDocButton({ id }: { id: string }) {
   const router = useRouter();
   return <button type="button" className="text-xs font-semibold text-red-700 underline underline-offset-4" onClick={async () => { if (!confirm("Remove this document?")) return; await send(`/api/portal/documents/${id}`, "DELETE"); router.refresh(); }}>Remove</button>;
+}
+
+export function ForgotForm() {
+  const [msg, setMsg] = useState<{ tone: "error" | "success" | "info"; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <form className="space-y-4" onSubmit={async (e) => {
+      e.preventDefault(); setBusy(true); setMsg(null);
+      const r = await send("/api/portal/forgot", "POST", { email: new FormData(e.currentTarget).get("email") });
+      setBusy(false);
+      if (!r.ok) setMsg({ tone: "error", text: r.error ?? "Failed" });
+      else if (r.emailAvailable === false) setMsg({ tone: "info", text: "Automatic reset emails are not available yet. Please contact us and we will help you reset your password." });
+      else setMsg({ tone: "success", text: "If an account exists for that email, we have sent a reset link. It is valid for 1 hour." });
+    }}>
+      {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+      <div><label htmlFor="email" className="mb-1 block text-sm font-semibold">Email</label><input id="email" name="email" type="email" required autoComplete="email" className={input} /></div>
+      <Button type="submit" disabled={busy} className="w-full">{busy ? "Please wait…" : "Send reset link"}</Button>
+    </form>
+  );
+}
+
+export function ResetForm({ token }: { token: string }) {
+  const router = useRouter();
+  const [err, setErr] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  if (done) return <Notice tone="success">Your password has been changed. <a className="font-semibold underline" href="/portal/login">Sign in</a> with the new password.</Notice>;
+  return (
+    <form className="space-y-4" onSubmit={async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.currentTarget);
+      if (fd.get("password") !== fd.get("confirm")) { setErr("Passwords do not match"); return; }
+      setBusy(true); setErr(null);
+      const r = await send("/api/portal/reset", "POST", { token, password: fd.get("password") });
+      setBusy(false);
+      if (r.ok) { setDone(true); router.refresh(); } else setErr(r.error ?? "Failed");
+    }}>
+      {err && <Notice tone="error">{err}</Notice>}
+      <div><label htmlFor="password" className="mb-1 block text-sm font-semibold">New password</label><input id="password" name="password" type="password" required minLength={10} maxLength={72} autoComplete="new-password" className={input} /><p className="mt-1 text-xs text-muted">At least 10 characters.</p></div>
+      <div><label htmlFor="confirm" className="mb-1 block text-sm font-semibold">Confirm new password</label><input id="confirm" name="confirm" type="password" required minLength={10} maxLength={72} autoComplete="new-password" className={input} /></div>
+      <Button type="submit" disabled={busy} className="w-full">{busy ? "Saving…" : "Change password"}</Button>
+    </form>
+  );
+}
+
+/** Consumes the emailed token once on load (a click, not a prefetch, because it runs in the browser). */
+export function VerifyRunner({ token }: { token: string }) {
+  const [state, setState] = useState<"working" | "ok" | "error">("working");
+  const [err, setErr] = useState("");
+  const ran = useRef(false);
+  useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+    send("/api/portal/verify", "POST", { token }).then((r) => { if (r.ok) setState("ok"); else { setErr(r.error ?? "Failed"); setState("error"); } });
+  }, [token]);
+  if (state === "working") return <p role="status" className="text-sm text-muted">Verifying your email…</p>;
+  if (state === "ok") return <Notice tone="success">Your email is verified. <a className="font-semibold underline" href="/portal">Go to your portal</a>.</Notice>;
+  return <Notice tone="error">{err} <a className="font-semibold underline" href="/portal">Go to your portal</a></Notice>;
+}
+
+export function ResendVerification() {
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <span>
+      <button type="button" disabled={busy} className="font-semibold underline underline-offset-4" onClick={async () => {
+        setBusy(true); setMsg(null);
+        const r = await send("/api/portal/resend-verification", "POST");
+        setBusy(false);
+        setMsg(r.ok ? (r.sent ? "Verification email sent. Please check your inbox." : "Could not send right now. Please try again later.") : (r.error ?? "Failed"));
+      }}>Resend verification email</button>
+      {msg && <span role="status" className="ml-2 text-sm">{msg}</span>}
+    </span>
+  );
+}
+
+export function MessageBox({ caseId }: { caseId: string }) {
+  const router = useRouter();
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <form className="mt-4 space-y-2" onSubmit={async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      setBusy(true); setErr(null);
+      const r = await send(`/api/portal/cases/${caseId}/messages`, "POST", { body: new FormData(form).get("body") });
+      setBusy(false);
+      if (r.ok) { form.reset(); router.refresh(); } else setErr(r.error ?? "Failed");
+    }}>
+      {err && <Notice tone="error">{err}</Notice>}
+      <label htmlFor="msg" className="sr-only">Message to our team</label>
+      <textarea id="msg" name="body" required maxLength={2000} rows={3} placeholder="Write a message to our team…" className={input} />
+      <Button type="submit" disabled={busy} variant="dark">{busy ? "Sending…" : "Send message"}</Button>
+    </form>
+  );
+}
+
+export function DataRequestForm() {
+  const [msg, setMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  async function submit(kind: "export" | "delete") {
+    if (kind === "delete" && !window.confirm("Request deletion of your account and data? We may need to keep some records the law requires. Our team will contact you.")) return;
+    setBusy(true); setMsg(null);
+    const r = await send("/api/portal/data-request", "POST", { kind });
+    setBusy(false);
+    setMsg(r.ok ? { tone: "success", text: "Request received. Our team will respond to you by email." } : { tone: "error", text: r.error ?? "Failed" });
+  }
+  return (
+    <div className="space-y-3">
+      {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+      <div className="flex flex-wrap gap-3">
+        <Button type="button" variant="secondary" disabled={busy} onClick={() => submit("export")}>Request a copy of my data</Button>
+        <Button type="button" variant="secondary" disabled={busy} onClick={() => submit("delete")}>Request account deletion</Button>
+      </div>
+    </div>
+  );
 }

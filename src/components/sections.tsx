@@ -5,6 +5,7 @@ import { COUNTRY_CONTENT } from "@/data/countries";
 import { servicesEnabled } from "@/lib/env";
 import { Flag } from "./Flag";
 import { formatPkr } from "@/lib/pricing";
+import { getPublicFaqs } from "@/lib/cms";
 import { site, whatsappLink } from "@/lib/site";
 import { FUNDING_LABEL, type Country, type Scholarship, type Service } from "@/lib/types";
 import { Badge, ButtonLink, Card, Container, Notice, Section, SectionHeading, cx } from "./ui";
@@ -287,7 +288,8 @@ export function FaqList({ items = FAQS }: { items?: { q: string; a: string }[] }
   );
 }
 
-export function FaqSection() {
+export async function FaqSection() {
+  const faqs = await getPublicFaqs();
   return (
     <Section>
       <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
@@ -295,7 +297,7 @@ export function FaqSection() {
           <SectionHeading eyebrow="FAQs" title="Questions we hear most" intro="Straight answers — including about what we cannot do." />
           <ButtonLink href="/faq" variant="secondary" className="mt-6">All FAQs</ButtonLink>
         </div>
-        <FaqList items={FAQS.slice(0, 5)} />
+        <FaqList items={faqs.slice(0, 5)} />
       </div>
     </Section>
   );

@@ -31,6 +31,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
         <p className="font-mono text-sm font-bold text-navy-900">{b.reference}</p>
       </div>
       <dl className="mt-8 grid grid-cols-[10rem_1fr] gap-y-3 text-sm">
+        {p.invoice_no && (<><dt className="text-muted">Invoice no.</dt><dd className="font-mono">{p.invoice_no}</dd></>)}
         <dt className="text-muted">Received from</dt><dd>{b.full_name}</dd>
         <dt className="text-muted">Service</dt><dd>{service.title}</dd>
         <dt className="text-muted">Amount received</dt><dd className="font-bold">{formatPkr(p.received_amount_pkr!)}</dd>

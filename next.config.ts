@@ -30,6 +30,18 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    return [
+      { source: "/destinations", destination: "/countries", permanent: true },
+      { source: "/destinations/:slug", destination: "/countries/:slug", permanent: true },
+      { source: "/assessment", destination: "/wizard", permanent: true },
+      { source: "/privacy-policy", destination: "/privacy", permanent: true },
+      { source: "/login", destination: "/portal/login", permanent: false },
+      { source: "/register", destination: "/portal/register", permanent: false },
+      { source: "/forgot-password", destination: "/portal/forgot", permanent: false },
+      { source: "/dashboard", destination: "/portal", permanent: false },
+    ];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

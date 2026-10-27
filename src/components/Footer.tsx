@@ -2,6 +2,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { whatsappLink, site } from "@/lib/site";
+import { CookiePrefsButton } from "./Analytics";
 import { Container } from "./ui";
 
 const social = [
@@ -47,6 +48,9 @@ export function Footer() {
                   <Link href={n.href} className="text-navy-200 transition hover:text-gold-300">{n.label}</Link>
                 </li>
               ))}
+              <li><Link href="/study-abroad" className="text-navy-200 transition hover:text-gold-300">Study Abroad</Link></li>
+              <li><Link href="/pricing" className="text-navy-200 transition hover:text-gold-300">Pricing</Link></li>
+              <li><Link href="/blog" className="text-navy-200 transition hover:text-gold-300">Blog</Link></li>
               <li><Link href="/faq" className="text-navy-200 transition hover:text-gold-300">FAQs</Link></li>
             </ul>
           </nav>
@@ -57,6 +61,8 @@ export function Footer() {
               <li><Link href="/privacy" className="text-navy-200 transition hover:text-gold-300">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-navy-200 transition hover:text-gold-300">Terms of Service</Link></li>
               <li><Link href="/refund-policy" className="text-navy-200 transition hover:text-gold-300">Refund &amp; Cancellation</Link></li>
+              <li><Link href="/accessibility" className="text-navy-200 transition hover:text-gold-300">Accessibility</Link></li>
+              <li><CookiePrefsButton className="text-navy-200 transition hover:text-gold-300" /></li>
             </ul>
           </nav>
 

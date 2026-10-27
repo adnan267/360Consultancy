@@ -58,6 +58,7 @@ export class MemoryRepo implements Repo {
     const payment: Payment = {
       id: randomUUID(),
       booking_id: booking.id,
+      invoice_no: null,
       method: "bank_transfer",
       amount_pkr: row.fee_pkr,
       status: "awaiting",
@@ -124,6 +125,7 @@ export class MemoryRepo implements Repo {
   async updatePayment(paymentId: string, patch: PaymentPatch) {
     const p = this.payments.find((x) => x.id === paymentId)!;
     Object.assign(p, patch, { updated_at: new Date().toISOString() });
+    if (p.status === "verified" && !p.invoice_no) p.invoice_no = this.nextInvoiceNo();
     return { ...p };
   }
 
@@ -173,7 +175,7 @@ export class MemoryRepo implements Repo {
   async createClientAccount(row: NewClientRow) {
     if (this.clients.some((c) => c.email.toLowerCase() === row.email.toLowerCase())) throw new DuplicateEmailError();
     const now = new Date().toISOString();
-    const c: Client = { id: randomUUID(), ...row, is_active: true, consent_privacy_at: now, consent_terms_at: now, last_login_at: null, created_at: now };
+    const c: Client = { id: randomUUID(), ...row, is_active: true, consent_privacy_at: now, consent_terms_at: now, last_login_at: null, email_verified_at: null, created_at: now };
     this.clients.push(c);
     return { ...c };
   }
@@ -238,13 +240,14 @@ export class MemoryRepo implements Repo {
   async insertCasePayment(row: { case_id: string; stage: CaseStage; amount_pkr: number }) {
     if (this.casePayments.some((p) => p.case_id === row.case_id && p.stage === row.stage)) throw new Error("duplicate stage payment");
     const now = new Date().toISOString();
-    const p: CasePayment = { id: randomUUID(), ...row, status: "awaiting", client_reference: null, bank_reference: null, received_amount_pkr: null, verified_by: null, verified_at: null, created_at: now, updated_at: now };
+    const p: CasePayment = { id: randomUUID(), ...row, status: "awaiting", client_reference: null, bank_reference: null, received_amount_pkr: null, verified_by: null, verified_at: null, invoice_no: null, created_at: now, updated_at: now };
     this.casePayments.push(p);
     return { ...p };
   }
   async updateCasePayment(id: string, patch: CasePaymentPatch) {
     const p = this.casePayments.find((x) => x.id === id)!;
     Object.assign(p, patch, { updated_at: new Date().toISOString() });
+    if (p.status === "verified" && !p.invoice_no) p.invoice_no = this.nextInvoiceNo();
     return { ...p };
   }
   async insertDocument(row: NewDocumentRow) {
@@ -321,6 +324,98 @@ export class MemoryRepo implements Repo {
   async setAdminPassword(id: string, passwordHash: string) {
     const a = this.admins.find((x) => x.id === id);
     if (a) a.password_hash = passwordHash;
+  }
+
+  private invoiceSeq = 0;
+  /** Mirrors the database trigger that numbers invoices when a payment is verified. */
+  nextInvoiceNo() { return `INV-${new Date().getFullYear()}-${String(++this.invoiceSeq).padStart(6, "0")}`; }
+  clientTokens: { client_id: string; kind: string; hash: string; expires: number; used: boolean }[] = [];
+  async issueClientToken(clientId: string, kind: "verify" | "reset", tokenHash: string, expiresAt: Date) {
+    this.clientTokens = this.clientTokens.filter((t) => !(t.client_id === clientId && t.kind === kind && !t.used));
+    this.clientTokens.push({ client_id: clientId, kind, hash: tokenHash, expires: expiresAt.getTime(), used: false });
+  }
+  async consumeClientToken(kind: "verify" | "reset", tokenHash: string) {
+    const t = this.clientTokens.find((x) => x.kind === kind && x.hash === tokenHash && !x.used && x.expires > Date.now());
+    if (!t) return null;
+    t.used = true;
+    return t.client_id;
+  }
+  async setClientPassword(id: string, passwordHash: string) {
+    const c = this.clients.find((x) => x.id === id);
+    if (c) c.password_hash = passwordHash;
+  }
+  async markClientVerified(id: string) {
+    const c = this.clients.find((x) => x.id === id);
+    if (c && !c.email_verified_at) c.email_verified_at = new Date().toISOString();
+  }
+
+  faqs: import("../types").Faq[] = [];
+  posts: import("../types").BlogPost[] = [];
+  messages: import("../types").CaseMessage[] = [];
+  dataRequests: import("../types").DataRequest[] = [];
+  async listFaqs(opts?: { publishedOnly?: boolean }) {
+    return this.faqs.filter((f) => !opts?.publishedOnly || f.is_published).sort((a, b) => a.sort_order - b.sort_order).map((f) => ({ ...f }));
+  }
+  async saveFaq(row: { id?: string; question: string; answer: string; sort_order?: number; is_published?: boolean }) {
+    const ex = row.id ? this.faqs.find((f) => f.id === row.id) : undefined;
+    if (row.id && !ex) return null;
+    if (ex) { Object.assign(ex, { ...row }); return { ...ex }; }
+    const f = { id: randomUUID(), question: row.question, answer: row.answer, sort_order: row.sort_order ?? 100, is_published: row.is_published ?? true };
+    this.faqs.push(f);
+    return { ...f };
+  }
+  async deleteFaq(id: string) { this.faqs = this.faqs.filter((f) => f.id !== id); }
+  async listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }) {
+    return this.posts.filter((p) => !opts?.publishedOnly || p.is_published).sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at)).slice(0, opts?.limit ?? 200).map((p) => ({ ...p }));
+  }
+  async getBlogPost(key: { id?: string; slug?: string }, opts?: { publishedOnly?: boolean }) {
+    const p = this.posts.find((x) => (key.id ? x.id === key.id : x.slug === key.slug) && (!opts?.publishedOnly || x.is_published));
+    return p ? { ...p } : null;
+  }
+  async saveBlogPost(row: { id?: string; slug: string; title: string; excerpt: string; body: string; meta_title: string | null; meta_description: string | null; is_published: boolean }) {
+    const now = new Date().toISOString();
+    if (this.posts.some((p) => p.slug === row.slug && p.id !== row.id)) throw new DuplicateReferenceError();
+    const ex = row.id ? this.posts.find((p) => p.id === row.id) : undefined;
+    if (ex) {
+      const wasPublished = ex.is_published;
+      Object.assign(ex, row, { updated_at: now, published_at: row.is_published ? (wasPublished ? ex.published_at : now) : ex.published_at });
+      return { ...ex };
+    }
+    const p = { id: randomUUID(), ...row, published_at: row.is_published ? now : null, created_at: now, updated_at: now };
+    this.posts.push(p);
+    return { ...p };
+  }
+  async deleteBlogPost(id: string) { this.posts = this.posts.filter((p) => p.id !== id); }
+  async listCaseMessages(caseId: string, opts: { includeInternal: boolean }) {
+    return this.messages.filter((m) => m.case_id === caseId && (opts.includeInternal || !m.internal)).sort((a, b) => a.created_at.localeCompare(b.created_at)).map((m) => ({ ...m }));
+  }
+  async addCaseMessage(row: { case_id: string; sender: "client" | "staff"; sender_label: string; body: string; internal: boolean }) {
+    const m = { id: randomUUID(), ...row, created_at: new Date().toISOString() };
+    this.messages.push(m);
+    return { ...m };
+  }
+  async insertDataRequest(row: { client_id: string; kind: "export" | "delete"; note: string | null }) {
+    const r = { id: randomUUID(), ...row, status: "open" as const, created_at: new Date().toISOString(), handled_at: null };
+    this.dataRequests.push(r);
+    return { ...r };
+  }
+  async listDataRequests(opts?: { status?: "open" | "done" | "rejected" }) {
+    return this.dataRequests.filter((r) => !opts?.status || r.status === opts.status).map((r) => ({ ...r, client_email: this.clients.find((c) => c.id === r.client_id)?.email ?? "" }));
+  }
+  async setDataRequestStatus(id: string, status: "done" | "rejected") {
+    const r = this.dataRequests.find((x) => x.id === id);
+    if (!r) return null;
+    r.status = status; r.handled_at = new Date().toISOString();
+    return { ...r };
+  }
+  async listAdmins() { return this.admins.map((a) => ({ id: a.id, email: a.email, role: a.role, is_active: a.is_active, last_login_at: null, created_at: "" })); }
+  async getAdminById(id: string) { const a = (await this.listAdmins()).find((x) => x.id === id); return a ?? null; }
+  async updateAdmin(id: string, patch: { role?: import("../types").Role; is_active?: boolean }) {
+    const a = this.admins.find((x) => x.id === id);
+    if (!a) return null;
+    if (patch.role) a.role = patch.role;
+    if (patch.is_active !== undefined) a.is_active = patch.is_active;
+    return (await this.getAdminById(id));
   }
 
   settings: Record<string, unknown> = {};

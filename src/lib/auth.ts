@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { sessionSecret } from "./env";
 import { can, type Permission } from "./status";
 import { jsonError } from "./security";
-import type { Actor, Role } from "./types";
+import { ROLES, type Actor, type Role } from "./types";
 
 export const SESSION_COOKIE = "admin_session";
 export const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours, no sliding refresh
@@ -41,8 +41,8 @@ export async function verifySessionToken(token: string | undefined): Promise<Adm
   try {
     const { payload } = await jwtVerify(token, sessionSecret(), { algorithms: ["HS256"] });
     const role = payload.role;
-    if (!payload.sub || typeof payload.email !== "string" || (role !== "admin" && role !== "staff")) return null;
-    return { sub: payload.sub, email: payload.email, role };
+    if (!payload.sub || typeof payload.email !== "string" || typeof role !== "string" || !(ROLES as readonly string[]).includes(role)) return null;
+    return { sub: payload.sub, email: payload.email, role: role as Role };
   } catch {
     return null;
   }
