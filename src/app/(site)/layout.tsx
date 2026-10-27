@@ -1,3 +1,5 @@
+import { Analytics } from "@/components/Analytics";
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { portalEnabled, servicesEnabled } from "@/lib/env";
@@ -13,6 +15,8 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <Header portal={portalEnabled()} />
       <main id="main">{children}</main>
       <Footer />
+      <WhatsAppFloat />
+      <Analytics />
     </>
   );
 }

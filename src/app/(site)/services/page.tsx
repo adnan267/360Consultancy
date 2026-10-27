@@ -40,7 +40,7 @@ export default async function ServicesPage() {
               </div>
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
                 <p className="max-w-xl text-xs leading-relaxed text-muted">{s.refund_terms} Government and embassy fees are separate. Our fee does not guarantee approval.</p>
-                <ButtonLink href={`/book?service=${s.slug}`}>Book this service</ButtonLink>
+                <div className="flex flex-wrap gap-3"><ButtonLink variant="secondary" href="/wizard">Check eligibility</ButtonLink><ButtonLink href={`/book?service=${s.slug}`}>Book consultation</ButtonLink></div>
               </div>
             </Card>
           ))}

@@ -95,6 +95,61 @@ export const SEED_SERVICES: Service[] = [
     refund_terms: REFUND_PLACEHOLDER,
     sort_order: 3,
   },
+  {
+    id: "seed-application-documents-review",
+    slug: "application-documents-review",
+    title: "CV, SOP & Application Review",
+    summary: "Feedback on your CV, statement of purpose or personal statement before you apply.",
+    description:
+      "You write your own CV and statements; we read them closely and give clear written feedback on structure, clarity and what to strengthen, so your application reads well. We do not write them for you.",
+    scope: "Review and written feedback on documents prepared by you. Fee to be confirmed before this service opens.",
+    inclusions: [
+      "Review of your CV and/or SOP or personal statement",
+      "Written feedback on structure, clarity and gaps",
+      "One round of follow-up questions",
+    ],
+    exclusions: [
+      "Writing the documents on your behalf",
+      "Submitting any application",
+      "Any guarantee of admission, scholarship or visa outcome",
+    ],
+    duration_minutes: null,
+    fee_pkr: 0,
+    fee_is_starting_price: false,
+    fee_needs_review: true,
+    // Stays hidden until the owner sets and approves a fee in Admin → Services & pricing.
+    is_active: false,
+    refund_terms: REFUND_PLACEHOLDER,
+    sort_order: 4,
+  },
+  {
+    id: "seed-business-setup-consultation",
+    slug: "business-setup-consultation",
+    title: "Business Setup Consultation",
+    summary: "An introductory consultation on company-formation options and the documents involved.",
+    description:
+      "A paid, clearly scoped conversation about the general options and documents for setting up a business. This is general information only; legal, tax and regulated advice is given by the relevant authorised professionals.",
+    scope: "General orientation only. Fee and partners to be confirmed before this service opens.",
+    inclusions: [
+      "Overview of common business-structure options",
+      "Indicative list of documents usually required",
+      "Suggested next steps and official links",
+    ],
+    exclusions: [
+      "Legal, tax or accounting advice",
+      "Company registration or filing on your behalf",
+      "Government or regulator fees",
+      "Any guarantee of approval or business outcome",
+    ],
+    duration_minutes: 30,
+    fee_pkr: 0,
+    fee_is_starting_price: false,
+    fee_needs_review: true,
+    // Stays hidden until qualified partners exist and a fee is approved.
+    is_active: false,
+    refund_terms: REFUND_PLACEHOLDER,
+    sort_order: 5,
+  },
 ];
 
 export const SEED_COUNTRIES: Country[] = [
