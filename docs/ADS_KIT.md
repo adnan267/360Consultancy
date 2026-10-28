@@ -13,6 +13,7 @@ Har ad ko sahi page par bhejein. Ye pages Google mein index nahi hote (sirf ads 
 | Scholarships | `https://www.360consultancy.pk/lp/scholarships` |
 | Document review | `https://www.360consultancy.pk/lp/document-review` |
 | Interview preparation | `https://www.360consultancy.pk/lp/interview-preparation` |
+| MBBS abroad | `https://www.360consultancy.pk/lp/mbbs-abroad` |
 | Business setup | `https://www.360consultancy.pk/lp/business-setup` |
 | Kisi country ke liye | `https://www.360consultancy.pk/lp/<country>` e.g. `/lp/germany`, `/lp/canada`, `/lp/united-kingdom` |
 
@@ -118,7 +119,8 @@ Main images khud generate nahi kar sakta. Neeche har creative ka **size aur prom
 | 4 | Scholarship | 1080×1350 | "Graduate student in a cap-less casual outfit holding books in front of a modern university library, confident smile, soft golden hour light, navy blue background accents" |
 | 5 | Document review | 1080×1080 | "Consultant at a desk reviewing documents on a laptop with a client, friendly professional office, navy and gold decor, natural light, no readable text on screens" |
 | 6 | Interview prep | 1080×1350 | "Young professional in smart clothes sitting calmly across a table in a bright office, a notebook in front of them, reassuring mood, navy and gold tones" |
-| 7 | Business setup | 1080×1080 | "Entrepreneur reviewing plans on a tablet in a modern co-working space, city skyline through the window, navy and gold tones, clean corporate photography" |
+| 7 | MBBS abroad | `https://www.360consultancy.pk/lp/mbbs-abroad` |
+| Business setup | 1080×1080 | "Entrepreneur reviewing plans on a tablet in a modern co-working space, city skyline through the window, navy and gold tones, clean corporate photography" |
 | 8 | Country banner (each) | 1200×628 | "Wide scenic photo of a recognisable skyline or landscape of [COUNTRY] at golden hour, no people close up, navy sky tones, empty space on left for text" |
 | 9 | Google display / YouTube thumbnail | 1280×720 | "Bright modern illustration of a globe with a paper plane flying around it, navy blue and gold flat style, plenty of empty space on the right" |
 | 10 | Profile / cover (FB, YouTube) | 820×312 / 2560×1440 | "Panoramic abstract world map in subtle navy and gold lines, soft gradient background, uncluttered, centre safe area empty" |

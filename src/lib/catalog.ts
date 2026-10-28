@@ -33,7 +33,7 @@ export async function getPublicCountries(): Promise<Country[]> {
 
 /** Core study/work/visit destinations (the e-visa / visa-free directory is listed separately). */
 export async function getDestinationCountries(): Promise<Country[]> {
-  return (await getPublicCountries()).filter((c) => c.slug !== "other" && !getCountryContent(c.slug)?.entry);
+  return (await getPublicCountries()).filter((c) => c.slug !== "other" && (!getCountryContent(c.slug)?.entry || getCountryContent(c.slug)?.core));
 }
 
 /** E-visa or visa-free / ETA directory countries. */

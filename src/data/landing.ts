@@ -25,6 +25,12 @@ export const LANDING_PAGES: LandingPage[] = [
     faqs: [{ q: "Can you help with university admissions?", a: "We guide you on the steps and your documents. Admission decisions are made by the university." }, NOT_GUARANTEE, FEES],
   },
   {
+    slug: "mbbs-abroad", purpose: "study", title: "MBBS abroad guidance", headline: "Thinking of studying MBBS abroad? Get the facts before you commit",
+    sub: "Compare Russia, Kyrgyzstan and Uzbekistan, understand the steps and what to verify before paying any university.",
+    bullets: ["Guidance on Russia, Kyrgyzstan and Uzbekistan", "Document checklist for admission and visa", "What to confirm about university and degree recognition", "Official sources linked, no guesses"],
+    faqs: [{ q: "Is the MBBS degree recognised in Pakistan?", a: "Recognition depends on the university and on the rules of the relevant Pakistani medical regulator, which can change. Confirm with the regulator before you enrol." }, { q: "Do you guarantee admission?", a: "No. The university decides. We guide the steps and your documents." }, { q: "What if you do not deliver your service?", a: "If we do not deliver the service you paid for, you can request a refund. See our Refund and Cancellation Policy." }, FEES],
+  },
+  {
     slug: "visit-visa", purpose: "visit", title: "Visit & tourist visa guidance", headline: "Visit visa guidance, explained step by step",
     sub: "Know what to prepare for a tourist, family or business visit, and avoid avoidable mistakes in your file.",
     bullets: ["Checklist for your visit type", "Review of your documents", "Plain-language explanation of each step", "Links to the official application pages"],

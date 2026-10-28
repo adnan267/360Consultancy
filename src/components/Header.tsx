@@ -9,6 +9,7 @@ import { buttonClass, cx } from "./ui";
 
 const SERVICE_MENU = [
   { href: "/wizard?purpose=study", label: "Study Visa" },
+  { href: "/lp/mbbs-abroad", label: "MBBS Abroad" },
   { href: "/wizard?purpose=work", label: "Work Visa" },
   { href: "/wizard?purpose=visit", label: "Visit Visa" },
   { href: "/services#document-review", label: "Document Review" },

@@ -31,6 +31,8 @@ export interface CountryContent {
   faqs: { q: string; a: string }[];
   /** Set for the e-visa / visa-free directory countries. Unset = core study/work/visit destination. */
   entry?: "evisa" | "visa-free";
+  /** Also list as a core destination (with its own landing pages) even though it has an e-visa directory entry. */
+  core?: boolean;
 }
 
 const GENERIC_CATEGORIES = ["Visit / tourism", "Study", "Work"];
@@ -300,6 +302,50 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     faqs: COMMON_FAQ("South Korea"),
   },
   {
+    slug: "saudi-arabia",
+    flag: "sa",
+    authority: "Saudi Arabian official visa portal and Ministry of Foreign Affairs",
+    intro: "Saudi Arabia's visas are issued through the official national visa portal and Saudi missions abroad. Requirements depend on the visa type; confirm everything on the official pages.",
+    categories: ["Visit / tourism", "Work"],
+    officialLinks: [{ label: "Saudi Arabia – official visa portal", url: "https://visa.visitsaudi.com/" }],
+    facts: [],
+    lastVerified: null,
+    faqs: COMMON_FAQ("Saudi Arabia"),
+  },
+  {
+    slug: "russia",
+    flag: "ru",
+    authority: "Russian Ministry of Foreign Affairs and Russian missions abroad",
+    intro: "Russia is a common destination for medical (MBBS) study. Visas and invitations are handled through Russian missions and the host university. Confirm current requirements on the official pages, and confirm the university's and degree's recognition with the relevant Pakistani medical regulator before enrolling.",
+    categories: ["Study (medical / MBBS)", "Study", "Visit / tourism"],
+    officialLinks: [{ label: "Study in Russia – official portal", url: "https://studyinrussia.ru/" }],
+    facts: [],
+    lastVerified: null,
+    faqs: [...COMMON_FAQ("Russia"), { q: "Is the MBBS degree recognised in Pakistan?", a: "Recognition depends on the university and on the rules of the relevant Pakistani medical regulator, which can change. Always confirm with the regulator before you enrol — we do not decide this." }, { q: "Do you guarantee admission?", a: "No. Admission decisions are made by the university. We guide you through the steps and your documents." }],
+  },
+  {
+    slug: "kyrgyzstan",
+    flag: "kg",
+    authority: "Kyrgyz Ministry of Foreign Affairs and e-visa portal",
+    intro: "Kyrgyzstan is a common destination for medical (MBBS) study. Entry and student visa steps are set by the Kyrgyz authorities and the host university. Confirm requirements on the official pages, and confirm the university's and degree's recognition with the relevant Pakistani medical regulator before enrolling.",
+    categories: ["Study (medical / MBBS)", "Study", "Visit / tourism"],
+    officialLinks: [{ label: "Kyrgyzstan – official e-visa portal", url: "https://evisa.e-gov.kg/" }],
+    facts: [],
+    lastVerified: null,
+    faqs: [...COMMON_FAQ("Kyrgyzstan"), { q: "Is the MBBS degree recognised in Pakistan?", a: "Recognition depends on the university and on the rules of the relevant Pakistani medical regulator, which can change. Always confirm with the regulator before you enrol — we do not decide this." }, { q: "Do you guarantee admission?", a: "No. Admission decisions are made by the university. We guide you through the steps and your documents." }],
+  },
+  {
+    slug: "uzbekistan",
+    flag: "uz",
+    authority: "Uzbek Ministry of Foreign Affairs and official e-visa portal",
+    intro: "Uzbekistan is a growing destination for medical (MBBS) study. Entry and student visa steps are set by the Uzbek authorities and the host university. Confirm requirements on the official pages, and confirm the university's and degree's recognition with the relevant Pakistani medical regulator before enrolling.",
+    categories: ["Study (medical / MBBS)", "Study", "Visit / tourism"],
+    officialLinks: [{ label: "Uzbekistan – official e-visa portal", url: "https://e-visa.gov.uz/" }],
+    facts: [],
+    lastVerified: null,
+    faqs: [...COMMON_FAQ("Uzbekistan"), { q: "Is the MBBS degree recognised in Pakistan?", a: "Recognition depends on the university and on the rules of the relevant Pakistani medical regulator, which can change. Always confirm with the regulator before you enrol — we do not decide this." }, { q: "Do you guarantee admission?", a: "No. Admission decisions are made by the university. We guide you through the steps and your documents." }],
+  },
+  {
     slug: "turkey",
     flag: "tr",
     entry: "evisa",
@@ -315,9 +361,10 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     slug: "united-arab-emirates",
     flag: "ae",
     entry: "evisa",
+    core: true,
     authority: "Federal Authority for Identity, Citizenship, Customs & Port Security (ICP)",
     intro: "United Arab Emirates is reported to accept online e-visa applications from some Pakistani applicants. Eligibility, fees, validity and conditions change, so always confirm on the official portal before you pay or travel.",
-    categories: ["Visit / tourism"],
+    categories: ["Visit / tourism", "Work"],
     officialLinks: [{ label: "ICP – UAE visas", url: "https://icp.gov.ae" }],
     facts: [],
     lastVerified: null,

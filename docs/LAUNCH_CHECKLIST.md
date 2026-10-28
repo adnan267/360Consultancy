@@ -19,7 +19,7 @@ Keep `SERVICES_ENABLED=false` until **every item in section A** is done.
 - [ ] Transparent/vector logo: only the raster logo was supplied. Header uses it on white; the footer places it on a white panel. Supply the source file for a true transparent/SVG version.
 
 ## C. Technical
-- [ ] Supabase production project + migrations 0001–0018 applied; RLS verified (anon key cannot read `bookings`).
+- [ ] Supabase production project + migrations 0001–0019 applied; RLS verified (anon key cannot read `bookings`).
 - [ ] `create-admin` run; sign-in tested; strong unique password.
 - [ ] `SESSION_SECRET` set (≥32 random chars) in Production.
 - [ ] `BANK_*` set; email provider credentials set and a real test email received (provider adapter is untested against the live API).

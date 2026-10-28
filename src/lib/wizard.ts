@@ -5,7 +5,7 @@ import { z } from "zod";
  * non-sensitive answers to suggest relevant services and resources.
  * Shared by the client (step validation) and the server (/api/leads).
  */
-export const DESTINATIONS = ["united-states", "united-kingdom", "australia", "canada", "serbia", "mexico", "china", "germany", "france", "italy", "spain", "ireland", "netherlands", "sweden", "norway", "denmark", "finland", "poland", "new-zealand", "japan", "south-korea", "undecided"] as const;
+export const DESTINATIONS = ["united-states", "united-kingdom", "australia", "canada", "serbia", "mexico", "china", "germany", "france", "italy", "spain", "ireland", "netherlands", "sweden", "norway", "denmark", "finland", "poland", "new-zealand", "japan", "south-korea", "united-arab-emirates", "saudi-arabia", "russia", "kyrgyzstan", "uzbekistan", "undecided"] as const;
 export const PURPOSES = ["study", "work", "visit", "unsure"] as const;
 export type Purpose = (typeof PURPOSES)[number];
 
@@ -155,7 +155,7 @@ export type LeadRequest = z.infer<typeof leadRequestSchema>;
 
 export const LABELS: Record<string, string> = {
   study: "Study", work: "Work", visit: "Visit / tourism", unsure: "Not sure yet",
-  "united-states": "United States", "united-kingdom": "United Kingdom", australia: "Australia", canada: "Canada", serbia: "Serbia", mexico: "Mexico", china: "China", "germany": "Germany", "france": "France", "italy": "Italy", "spain": "Spain", "ireland": "Ireland", "netherlands": "Netherlands", "sweden": "Sweden", "norway": "Norway", "denmark": "Denmark", "finland": "Finland", "poland": "Poland", "new-zealand": "New Zealand", "japan": "Japan", "south-korea": "South Korea", undecided: "Not decided",
+  "united-states": "United States", "united-kingdom": "United Kingdom", australia: "Australia", canada: "Canada", serbia: "Serbia", mexico: "Mexico", china: "China", "germany": "Germany", "france": "France", "italy": "Italy", "spain": "Spain", "ireland": "Ireland", "netherlands": "Netherlands", "sweden": "Sweden", "norway": "Norway", "denmark": "Denmark", "finland": "Finland", "poland": "Poland", "new-zealand": "New Zealand", "japan": "Japan", "south-korea": "South Korea", "united-arab-emirates": "United Arab Emirates", "saudi-arabia": "Saudi Arabia", "russia": "Russia", "kyrgyzstan": "Kyrgyzstan", "uzbekistan": "Uzbekistan", undecided: "Not decided",
   high_school: "High school", bachelor: "Bachelor's", master: "Master's", doctoral: "Doctoral", diploma: "Diploma", other: "Other",
   have: "Have a test result", planning: "Planning to take one", none: "No test planned",
   yes: "Yes", looking: "Looking", no: "No",
