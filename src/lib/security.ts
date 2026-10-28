@@ -18,7 +18,9 @@ export function isSameOrigin(req: Request): boolean {
     const o = new URL(origin);
     const allowed = new Set<string>([new URL(siteUrl()).host]);
     const host = req.headers.get("host");
-    if (host && process.env.NODE_ENV !== "production") allowed.add(host); // local dev / previews
+    // The browser sets Origin and a cross-site page cannot forge it, so Origin must match the Host the request
+    // actually arrived on. This also covers the apex/www pair of the production domain.
+    if (host) allowed.add(host);
     const fwdHost = req.headers.get("x-forwarded-host");
     if (fwdHost && process.env.VERCEL_ENV === "preview") allowed.add(fwdHost);
     return allowed.has(o.host);
