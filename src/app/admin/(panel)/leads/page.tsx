@@ -32,7 +32,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                 <td>{l.name}<br /><a className="text-navy-700 hover:underline" href={`mailto:${l.email}`}>{l.email}</a>{l.phone && <><br /><span className="text-xs text-muted">{l.phone}</span></>}</td>
                 <td>{LABELS[l.purpose] ?? l.purpose}</td>
                 <td>{LABELS[l.destination] ?? l.destination}</td>
-                <td className="max-w-xs break-words text-xs text-muted">{Object.entries(l.answers).filter(([k]) => k !== "purpose" && k !== "destination").map(([k, v]) => k === "extra_answers" && Array.isArray(v) ? (v as { question: string; answer: string }[]).map((x) => `${x.question}: ${x.answer}`).join(" · ") : `${k}: ${String(v)}`).join(" · ")}</td>
+                <td className="max-w-xs break-words text-xs text-muted">{Object.entries(l.answers).filter(([k]) => k !== "purpose" && k !== "destination").map(([k, v]) => k === "attribution" && v && typeof v === "object" ? `source: ${Object.entries(v as Record<string, string>).map(([a, b]) => `${a.replace("utm_", "")}=${b}`).join(", ")}` : k === "extra_answers" && Array.isArray(v) ? (v as { question: string; answer: string }[]).map((x) => `${x.question}: ${x.answer}`).join(" · ") : `${k}: ${String(v)}`).join(" · ")}</td>
                 <td className="text-xs">{l.suggested_services.join(", ")}</td>
                 <td><LeadStatusSelect id={l.id} status={l.status} /></td>
               </tr>

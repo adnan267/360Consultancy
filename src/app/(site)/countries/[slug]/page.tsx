@@ -38,6 +38,8 @@ export default async function CountryPage({ params }: Props) {
       <PageHero eyebrow="Destination" title={`${country.name} — visa guidance`} intro={content.intro}>
         <div className="flex flex-wrap items-center gap-3">
           <Flag code={content.flag} label={country.name} className="text-4xl" />
+          <ButtonLink href={`/book?country=${country.slug}`}>Book a consultation</ButtonLink>
+          <ButtonLink href={`/lp/${country.slug}#start`} variant="outline-light">Start free assessment</ButtonLink>
           {content.lastVerified ? <Badge tone="gold">Official details last verified {fmt(content.lastVerified)}</Badge> : <Badge tone="amber">Official details pending verification</Badge>}
         </div>
       </PageHero>

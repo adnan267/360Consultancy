@@ -14,10 +14,23 @@ interface Props {
   leadsEnabled: boolean;
   countries: { slug: string; name: string; flag: string }[];
   services: { slug: string; title: string; summary: string }[];
+  lp?: string;
+  preset?: WizardDraft;
   questions?: { id: string; label: string; help: string | null; kind: "text" | "select" | "yesno"; options: string[]; purpose: string | null; required: boolean }[];
 }
 
 const KEY = "360-wizard-v1";
+
+/** Ad attribution: UTM tags from the landing URL plus which landing page. Plain strings only, capped. */
+function attribution(lp?: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  try {
+    const q = new URLSearchParams(window.location.search);
+    for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content"]) { const v = q.get(k); if (v) out[k] = v.slice(0, 80); }
+  } catch { /* ignore */ }
+  if (lp) out.landing = lp;
+  return out;
+}
 const input = "block w-full rounded-xl border border-navy-200 bg-white px-4 py-3 text-base shadow-sm focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-gold-500/60 aria-[invalid=true]:border-red-500";
 
 function Choice({ name, value, current, onChange, children, flag }: { name: string; value: string; current: string | undefined; onChange: (v: string) => void; children: React.ReactNode; flag?: React.ReactNode }) {
@@ -41,9 +54,9 @@ function Group({ legend, error, children, cols = 2 }: { legend: string; error?: 
   );
 }
 
-export function Wizard({ leadsEnabled, countries, services, questions = [] }: Props) {
+export function Wizard({ leadsEnabled, countries, services, questions = [], lp, preset }: Props) {
   const uid = useId();
-  const [a, setA] = useState<WizardDraft>({});
+  const [a, setA] = useState<WizardDraft>(preset ?? {});
   const [idx, setIdx] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [resumeOffer, setResumeOffer] = useState<WizardDraft | null>(null);
@@ -91,7 +104,7 @@ export function Wizard({ leadsEnabled, countries, services, questions = [] }: Pr
     try {
       const res = await fetch("/api/leads", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: a, extra: Object.fromEntries(questions.filter((q) => !q.purpose || q.purpose === a.purpose).map((q) => [q.id, String(fd.get(`q_${q.id}`) ?? "")]).filter(([, v]) => v !== "")), contact: { name: fd.get("name"), email: fd.get("email"), phone: fd.get("phone") ?? "", consentPrivacy: fd.get("consentPrivacy") === "on", website: fd.get("website") ?? "" } }),
+        body: JSON.stringify({ answers: a, attribution: attribution(lp), extra: Object.fromEntries(questions.filter((q) => !q.purpose || q.purpose === a.purpose).map((q) => [q.id, String(fd.get(`q_${q.id}`) ?? "")]).filter(([, v]) => v !== "")), contact: { name: fd.get("name"), email: fd.get("email"), phone: fd.get("phone") ?? "", consentPrivacy: fd.get("consentPrivacy") === "on", website: fd.get("website") ?? "" } }),
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data?.ok) { setSaved(true); try { localStorage.removeItem(KEY); } catch { /* ignore */ } }

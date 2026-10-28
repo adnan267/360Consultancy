@@ -47,7 +47,7 @@ export function Hero() {
           </ul>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <ButtonLink href="/wizard" className="px-6 py-3.5 text-base">
+            <ButtonLink href="/#find-visa-options" className="px-6 py-3.5 text-base">
               Find Your Visa Options <ArrowRight className="size-4" />
             </ButtonLink>
             <ButtonLink href="/book" variant="secondary" className="px-6 py-3.5 text-base">

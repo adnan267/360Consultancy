@@ -27,6 +27,14 @@ describe("extra wizard questions", () => {
   });
 });
 
+describe("ad attribution", () => {
+  it("stores UTM tags and landing page, and rejects unknown keys", async () => {
+    expect(await createLead({ answers, contact, attribution: { utm_source: "meta", landing: "study-abroad" } }, { ip: "2.2.2.1" })).toMatchObject({ ok: true });
+    expect(repo.leads.at(-1)!.answers.attribution).toEqual({ utm_source: "meta", landing: "study-abroad" });
+    expect(await createLead({ answers, contact: { ...contact, email: "u@example.com" }, attribution: { evil: "x" } }, { ip: "2.2.2.2" })).toMatchObject({ ok: false });
+  });
+});
+
 describe("email templates and notifications", () => {
   it("renders only known placeholders", () => {
     expect(renderTemplate("Hi {{name}} {{nope}}!", { name: "Sana" })).toBe("Hi Sana !");

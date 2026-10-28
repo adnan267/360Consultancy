@@ -20,7 +20,7 @@ export async function createLead(input: unknown, ctx: { ip: string }): Promise<R
     for (const i of parsed.error.issues) (fields[String(i.path.at(-1) ?? "form")] ??= []).push(i.message);
     return fail(422, "Please check the highlighted fields.", fields);
   }
-  const { answers, contact, extra } = parsed.data;
+  const { answers, contact, extra, attribution } = parsed.data;
 
   if (contact.website) return { ok: true, suggestedServices: [] }; // honeypot: pretend success
 
@@ -46,7 +46,7 @@ export async function createLead(input: unknown, ctx: { ip: string }): Promise<R
     phone: contact.phone ?? null,
     purpose: answers.purpose,
     destination: answers.destination,
-    answers: extraAnswers.length ? { ...answers, extra_answers: extraAnswers } : answers,
+    answers: { ...answers, ...(extraAnswers.length ? { extra_answers: extraAnswers } : {}), ...(attribution && Object.keys(attribution).length ? { attribution } : {}) },
     suggested_services: s.serviceSlugs,
   });
   await notifyAdmins("New lead from the website", `${contact.name} saved their details (${answers.purpose} → ${answers.destination}). View it under Leads in the admin panel.`);

@@ -57,3 +57,12 @@ export async function getPublicScholarships(filter: Omit<ScholarshipFilter, "pub
     .filter((s) => !filter.funding || s.funding_type === filter.funding)
     .filter((s) => !q || [s.name, s.provider, s.eligibility_summary].some((v) => v.toLowerCase().includes(q)));
 }
+
+/** Active admin-defined wizard questions; an empty list if the database is unavailable (e.g. at build time). */
+export async function getActiveQuestions() {
+  try {
+    return await getRepo().listWizardQuestions({ activeOnly: true });
+  } catch {
+    return [];
+  }
+}
