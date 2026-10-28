@@ -13,7 +13,8 @@ export const site = {
     "Clear, practical visa guidance from 360 Consultancy: understand your options, organise your documents and prepare for your next step.",
   contact: {
     email: clean(process.env.NEXT_PUBLIC_CONTACT_EMAIL),
-    phone: clean(process.env.NEXT_PUBLIC_CONTACT_PHONE),
+    // Owner's choice: no phone number on the website (contact is by WhatsApp chat and email).
+    phone: "" as string,
     whatsapp: clean(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER).replace(/\D/g, ""),
     address: clean(process.env.NEXT_PUBLIC_BUSINESS_ADDRESS),
   },
