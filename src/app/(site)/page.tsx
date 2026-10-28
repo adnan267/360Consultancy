@@ -19,7 +19,6 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(org).replace(/</g, "\\u003c") }} />
       <Hero />
-      <FindOptionsBand />
       <PurposeCards />
       <FeaturedCountries countries={countries} />
       <ProcessSection />
