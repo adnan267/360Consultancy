@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GENERIC_PROCESS, INDICATIVE_CHECKLIST, getCountryContent } from "@/data/countries";
 import { Flag } from "@/components/Flag";
+import { OfficialDocuments } from "@/components/OfficialDocuments";
 import { FaqList, FeeLabel, FinalCta } from "@/components/sections";
 import { Badge, ButtonLink, Card, Container, Notice, PageHero } from "@/components/ui";
 import { getDestinationCountries, getPublicScholarships, getPublicServices } from "@/lib/catalog";
@@ -45,7 +46,7 @@ export default async function CountryPage({ params }: Props) {
       </PageHero>
       <Container className="grid gap-10 py-16 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-10">
-          {!content.lastVerified && (
+          {!content.lastVerified && !content.documents?.length && (
             <Notice tone="warn" title="Check the official source">We have not yet verified the current rules, fees or processing times for {country.name}, so none are shown here. Please rely on the official links.</Notice>
           )}
 
@@ -69,6 +70,8 @@ export default async function CountryPage({ params }: Props) {
               </ul>
             </section>
           )}
+
+          <OfficialDocuments content={content} name={country.name} />
 
           <section>
             <h2 className="text-2xl font-extrabold text-navy-900">General eligibility</h2>

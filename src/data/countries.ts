@@ -33,6 +33,9 @@ export interface CountryContent {
   entry?: "evisa" | "visa-free";
   /** Also list as a core destination (with its own landing pages) even though it has an e-visa directory entry. */
   core?: boolean;
+  /** Document lists read from an official source (paraphrased). Shown with the source link and the date they were read. */
+  documents?: { purpose: string; sourceLabel: string; sourceUrl: string; items: string[] }[];
+  documentsChecked?: string;
 }
 
 const GENERIC_CATEGORIES = ["Visit / tourism", "Study", "Work"];
@@ -52,6 +55,21 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "U.S. Department of State – Visas", url: "https://travel.state.gov/content/travel/en/us-visas.html" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Visit (B-1/B-2)", sourceLabel: "U.S. Department of State – Visitor Visa", sourceUrl: "https://travel.state.gov/content/dam/visas/VisaFlyer_B1B2-March-2015-Accessible.pdf", items: [
+        "Complete the online DS-160 form and bring the printed confirmation page to the interview",
+        "Pay the visa application fee before the interview if it is required at that stage",
+        "Book an interview appointment at the U.S. Embassy or Consulate",
+        "The flyer does not list other documents; the embassy page for your country lists the rest and the officer may ask for more",
+      ] },
+      { purpose: "Study (F/M)", sourceLabel: "U.S. Department of State – Student Visa", sourceUrl: "https://travel.state.gov/content/travel/en/us-visas/study/student-visa.html", items: [
+        "Form I-20 from your SEVP-approved school (you present it at the interview)",
+        "SEVIS I-901 fee paid",
+        "Other documents and evidence the officer asks for, as listed by your embassy or consulate",
+        "Interview is generally required for ages 14–79, with digital fingerprints",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("the United States"),
   },
   {
@@ -63,6 +81,37 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "GOV.UK – Visas and immigration", url: "https://www.gov.uk/browse/visas-immigration" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Visit (Standard Visitor)", sourceLabel: "GOV.UK – Visiting the UK: guide to supporting documents", sourceUrl: "https://www.gov.uk/government/publications/visitor-visa-guide-to-supporting-documents/guide-to-supporting-documents-visiting-the-uk", items: [
+        "Valid passport or travel document",
+        "Evidence you can pay for the whole trip, such as bank statements or proof of earnings (documents older than a year carry little weight)",
+        "If someone else pays or hosts you: what they provide, how, and your relationship to them",
+        "What you will do in the UK; invitation letter from an organiser if you are attending an event",
+        "Ties to your home country: employer letter (role, salary, length of employment) or school/university letter; business papers or recent invoices if self-employed",
+        "Copies of previous passports showing travel",
+        "Full verifiable translation of any document not in English or Welsh",
+      ] },
+      { purpose: "Study (Student visa)", sourceLabel: "GOV.UK – Student visa: documents you'll need", sourceUrl: "https://www.gov.uk/student-visa/documents-you-must-provide", items: [
+        "Valid passport or travel document",
+        "Confirmation of Acceptance for Studies (CAS) from your course provider",
+        "Financial evidence, depending on your circumstances",
+        "ATAS certificate if your course and nationality require it",
+        "Tuberculosis test result where required",
+        "Written consent from a financial sponsor who paid your fees or living costs in the last 12 months",
+        "Under 18: written consent of both parents or guardians and proof of relationship",
+      ] },
+      { purpose: "Work (Skilled Worker)", sourceLabel: "GOV.UK – Skilled Worker visa: documents you'll need", sourceUrl: "https://www.gov.uk/skilled-worker-visa/documents-you-must-provide", items: [
+        "Certificate of sponsorship reference number from your employer",
+        "Proof of English language knowledge",
+        "Valid passport or other identity and nationality document",
+        "Job title, annual salary and occupation code (shown on the certificate)",
+        "Savings evidence unless the certificate shows your employer covers maintenance",
+        "Tuberculosis test result if you are from a listed country",
+        "Criminal record certificate for certain education, health, therapy and social-care jobs",
+        "Certified translation of documents not in English or Welsh",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("the United Kingdom"),
   },
   {
@@ -74,6 +123,29 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "Department of Home Affairs – Immigration", url: "https://immi.homeaffairs.gov.au" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Visit (Visitor visa 600)", sourceLabel: "Home Affairs – Applying for a Visitor visa", sourceUrl: "https://immi.homeaffairs.gov.au/check-twice-submit-once/visitor-visa", items: [
+        "Clear copy of your passport personal details page",
+        "Proof of any name changes, and all names you have used",
+        "Ties to home: recent payslip, employer leave letter, enrolment certificate, or children's birth certificates",
+        "Invitation letter from family or friends where relevant",
+        "Proof of funds, such as recent bank statements",
+        "Details of previous travel; itinerary is optional",
+        "Form 956 if you use a migration agent or lawyer",
+        "English translations of other-language documents, with the translator's details",
+        "Under 18: birth certificate showing both parents, parents' passport copies, and consent forms if not travelling with them",
+      ] },
+      { purpose: "Study (Student visa 500)", sourceLabel: "Home Affairs – Applying for a Student visa", sourceUrl: "https://immi.homeaffairs.gov.au/check-twice-submit-once/student-visa", items: [
+        "Current Confirmation of Enrolment (COE)",
+        "The documents shown by the official Document Checklist tool for your situation",
+        "Evidence that you are a genuine student",
+        "English language evidence if the checklist asks for it",
+        "English translations of other-language documents, with the translator's details",
+        "Proof of any name changes",
+        "Under 18: additional documents as set out on the official page",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Australia"),
   },
   {
@@ -85,6 +157,33 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "IRCC – Immigration and citizenship", url: "https://www.canada.ca/en/immigration-refugees-citizenship.html" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Visit (visitor visa)", sourceLabel: "IRCC – Document checklist, visitor visa (IMM 5484)", sourceUrl: "https://www.canada.ca/content/dam/ircc/documents/pdf/english/kits/forms/imm5484/01-05-2026/imm5484e.pdf", items: [
+        "Application form IMM 5257 and Family Information form IMM 5707 (for ages 18+)",
+        "Proof of payment of fees, including biometrics",
+        "Copy of the passport information page",
+        "Two photos meeting the specifications (not needed if you give biometrics)",
+        "Proof of financial support for you and accompanying family",
+        "Document explaining your purpose of travel",
+        "Marriage certificate or licence if applicable",
+        "Custody papers or authorisation letters for minors travelling alone or with one parent",
+        "Anything extra your visa office requires",
+      ] },
+      { purpose: "Study (study permit)", sourceLabel: "IRCC – Document checklist, study permit (IMM 5483)", sourceUrl: "https://www.canada.ca/content/dam/ircc/documents/pdf/english/kits/forms/imm5483/01-08-2025/imm5483e.pdf", items: [
+        "Application forms: IMM 1294 and Family Information form IMM 5707 (plus others where they apply)",
+        "Proof of paid fees, including biometrics",
+        "Copy of your passport information page",
+        "Two photos meeting the specifications",
+        "Letter of acceptance from your Canadian school",
+        "Provincial or territorial attestation letter, with limited exceptions",
+        "Quebec Acceptance Certificate (CAQ) if studying in Quebec",
+        "Proof of sufficient funds",
+        "Medical exam results if the rules require one",
+        "Marriage certificate if applicable",
+        "Any other documents the visa office asks for",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Canada"),
   },
   {
@@ -145,6 +244,32 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "China Online Visa Application", url: "https://cova.mfa.gov.cn" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "All visa types", sourceLabel: "Embassy of China in Pakistan – Instruction for Chinese Visa Application", sourceUrl: "https://pk.china-embassy.gov.cn/eng/lsfw/va/202411/t20241104_11520719.htm", items: [
+        "Passport valid more than 6 months with at least one blank visa page, and a copy of the information page",
+        "Printed online application form with confirmation page and digital photo",
+        "Copy of the front and back of the Pakistani national ID card (Pakistani citizens)",
+        "Name-change certificate if your name differs from the new passport, attested by Pakistan's foreign ministry",
+        "Police character certificate, apostilled or attested by Pakistan's foreign ministry",
+      ] },
+      { purpose: "Tourist (L)", sourceLabel: "Embassy of China in Pakistan – Instruction for Chinese Visa Application", sourceUrl: "https://pk.china-embassy.gov.cn/eng/lsfw/va/202411/t20241104_11520719.htm", items: [
+        "Invitation letter for a tourist group (at least 5 people) issued by an authorised Chinese tourism office through a local travel agency",
+      ] },
+      { purpose: "Business (M)", sourceLabel: "Embassy of China in Pakistan – Instruction for Chinese Visa Application", sourceUrl: "https://pk.china-embassy.gov.cn/eng/lsfw/va/202411/t20241104_11520719.htm", items: [
+        "Invitation letter or verification letter of invitation from a Chinese entity",
+        "For trade fairs: the invitation letter for that event",
+        "If you have no such letter: an ordinary invitation letter, 6 months of bank statements showing enough funds, and a round-trip booking and hotel reservation recommended",
+      ] },
+      { purpose: "Study over 180 days (X1)", sourceLabel: "Embassy of China in Pakistan – Instruction for Chinese Visa Application", sourceUrl: "https://pk.china-embassy.gov.cn/eng/lsfw/va/202411/t20241104_11520719.htm", items: [
+        "Printed JW201 or JW202 study confirmation form",
+        "Copy of the admission letter from the Chinese school",
+        "Proof of scholarship or funds of US$2,500 per academic year (or the PKR equivalent)",
+      ] },
+      { purpose: "Work (Z)", sourceLabel: "Embassy of China in Pakistan – Instruction for Chinese Visa Application", sourceUrl: "https://pk.china-embassy.gov.cn/eng/lsfw/va/202411/t20241104_11520719.htm", items: [
+        "One of: foreigner's work permit notification or card, a Culture and Tourism Bureau approval for commercial performance, or a representative-office registration, depending on your situation",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("China"),
   },
   {
@@ -156,6 +281,27 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "Federal Foreign Office – Visa for Germany", url: "https://visa.diplo.de/" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+      { purpose: "Visit – example checklist", sourceLabel: "German Federal Foreign Office – Schengen tourism checklist (German mission in India; the Islamabad list may differ)", sourceUrl: "https://india.diplo.de/in-en/2674158-2674158", items: [
+        "Online application form (VIDEX) printed with barcodes, signed declarations",
+        "Passport issued in the last 10 years, valid at least 3 months beyond return, two blank pages, plus copies of the biometric and address pages",
+        "One biometric photo taken within the last six months",
+        "Cover letter and travel plan or itinerary",
+        "Accommodation proof for each Schengen country visited, or host documents",
+        "Flight reservation",
+        "Travel medical insurance valid across Schengen with at least EUR 30,000 cover",
+        "Proof of financial status by employment type, plus sponsor documents if someone else pays",
+        "Civil-status documents where applicable, and fingerprint record if taken in the last 59 months",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Germany"),
   },
   {
@@ -167,6 +313,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "France-Visas – official portal", url: "https://france-visas.gouv.fr/" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("France"),
   },
   {
@@ -178,6 +334,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "Visto per l'Italia – official portal", url: "https://vistoperitalia.esteri.it/" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Italy"),
   },
   {
@@ -189,6 +355,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "Spanish Ministry of Foreign Affairs", url: "https://www.exteriores.gob.es/en/Paginas/index.aspx" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Spain"),
   },
   {
@@ -211,6 +387,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "IND – official site", url: "https://ind.nl/en" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Netherlands"),
   },
   {
@@ -222,6 +408,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "Swedish Migration Agency", url: "https://www.migrationsverket.se/en.html" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Sweden"),
   },
   {
@@ -233,6 +429,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "UDI – official site", url: "https://www.udi.no/en/" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Norway"),
   },
   {
@@ -244,6 +450,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "New to Denmark – official portal", url: "https://www.nyidanmark.dk/en-GB" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Denmark"),
   },
   {
@@ -255,6 +471,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "Finnish Immigration Service", url: "https://migri.fi/en/home" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Finland"),
   },
   {
@@ -266,6 +492,16 @@ export const COUNTRY_CONTENT: CountryContent[] = [
     officialLinks: [{ label: "Office for Foreigners – official site", url: "https://www.gov.pl/web/udsc-en" }],
     facts: [],
     lastVerified: null,
+    documents: [
+      { purpose: "Short stay (Schengen visa, general)", sourceLabel: "EU Migration and Home Affairs – Applying for a Schengen visa", sourceUrl: "https://home-affairs.ec.europa.eu/policies/schengen/visa-policy/applying-schengen-visa_en", items: [
+        "Proof of the purpose of your trip",
+        "Proof of funds to cover your stay",
+        "Proof of where you will stay",
+        "Proof that you intend to return to your home country",
+        "The consulate may ask for additional documents",
+      ] },
+    ],
+    documentsChecked: "2026-10-29",
     faqs: COMMON_FAQ("Poland"),
   },
   {

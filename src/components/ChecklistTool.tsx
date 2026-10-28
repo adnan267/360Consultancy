@@ -2,7 +2,8 @@
 
 import { ExternalLink, Printer } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CHECKLISTS } from "@/data/countries";
+import { CHECKLISTS, getCountryContent } from "@/data/countries";
+import { OfficialDocuments } from "./OfficialDocuments";
 import { DESTINATION_REQUIREMENT_KEY, DOCUMENT_REQUIREMENTS, REQUIREMENT_NOTICE, type RequirementItem, type RequirementList } from "@/data/document-requirements";
 import { DOC_TYPE_LABEL } from "@/lib/types";
 import { Flag } from "./Flag";
@@ -100,6 +101,7 @@ export function ChecklistTool({ countries, initialPurpose }: { countries: C[]; i
           <p className="mt-6 text-sm">Official requirements for {c.name}: <a href={c.link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-navy-700 underline underline-offset-4">{c.link.label} <ExternalLink className="size-3.5" /></a></p>
         )}
       </Card>
+      {c && getCountryContent(c.slug)?.documents?.length ? <OfficialDocuments content={getCountryContent(c.slug)!} name={c.name} /> : null}
       <Notice tone="warn" title="Indicative only">{req ? REQUIREMENT_NOTICE : "This is a general list, not the official requirement. The authority's own checklist for your exact visa category always takes precedence, and it may ask for more or different documents."}</Notice>
     </div>
   );
