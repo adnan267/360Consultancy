@@ -387,6 +387,77 @@ export function FaqManager({ initial }: { initial: FaqRow[] }) {
   );
 }
 
+export function NewLandingForm() {
+  const router = useRouter();
+  const slugify = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+  return (
+    <form className="flex flex-wrap items-end gap-3 rounded-2xl border border-dashed border-navy-200 p-4" onSubmit={(e) => { e.preventDefault(); const s = slugify(String(new FormData(e.currentTarget).get("slug") ?? "")); if (s) router.push(`/admin/landing-pages/${s}`); }}>
+      <div className="min-w-56 flex-1"><label htmlFor="lp_new" className="mb-1 block text-sm font-semibold">Add a new landing page</label><input id="lp_new" name="slug" required maxLength={80} placeholder="e.g. uk-student-visa" className={input} /><p className="mt-1 text-xs text-muted">This becomes the URL: /lp/your-slug</p></div>
+      <Button type="submit">Create</Button>
+    </form>
+  );
+}
+
+type LandingForm = { slug: string; purpose: "study" | "work" | "visit" | "unsure"; destination: string | null; title: string; headline: string; sub: string; bullets: string[]; faqs: { q: string; a: string }[]; service_slug: string | null; is_published: boolean };
+export function LandingEditor({ page, hasDefault, saved, destinations, services }: { page: LandingForm; hasDefault: boolean; saved: boolean; destinations: { slug: string; name: string }[]; services: { slug: string; title: string }[] }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [faqs, setFaqs] = useState(page.faqs.length ? page.faqs : [{ q: "", a: "" }]);
+  const setFaq = (i: number, k: "q" | "a", v: string) => setFaqs((f) => f.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  const url = `/api/admin/landing-pages/${page.slug}`;
+  return (
+    <form className="space-y-5" onSubmit={async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.currentTarget);
+      const body = {
+        purpose: fd.get("purpose"), destination: (fd.get("destination") as string) || null, title: fd.get("title"), headline: fd.get("headline"), sub: fd.get("sub") || "",
+        bullets: String(fd.get("bullets") ?? "").split("\n").map((b) => b.trim()).filter(Boolean),
+        faqs: faqs.map((f) => ({ q: f.q.trim(), a: f.a.trim() })).filter((f) => f.q || f.a),
+        service_slug: (fd.get("service") as string) || null, is_published: fd.get("pub") === "on",
+      };
+      setBusy(true); setMsg(null);
+      const r = await call(url, "PUT", body);
+      setBusy(false);
+      if (r.ok) { setMsg({ tone: "success", text: "Saved. The live page updates within a few minutes." }); router.refresh(); } else setMsg({ tone: "error", text: r.error ?? "Failed" });
+    }}>
+      {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div><label htmlFor="lp_title" className="mb-1 block text-sm font-semibold">Page title <span className="font-normal text-muted">(browser tab)</span></label><input id="lp_title" name="title" required minLength={3} maxLength={120} defaultValue={page.title} className={input} /></div>
+        <div><label htmlFor="lp_purpose" className="mb-1 block text-sm font-semibold">Visitor goal</label><select id="lp_purpose" name="purpose" defaultValue={page.purpose} className={input}><option value="study">Study</option><option value="work">Work</option><option value="visit">Visit</option><option value="unsure">Not sure / any</option></select></div>
+      </div>
+      <div><label htmlFor="lp_headline" className="mb-1 block text-sm font-semibold">Headline</label><input id="lp_headline" name="headline" required minLength={3} maxLength={160} defaultValue={page.headline} className={input} /></div>
+      <div><label htmlFor="lp_sub" className="mb-1 block text-sm font-semibold">Text under the headline</label><textarea id="lp_sub" name="sub" maxLength={400} rows={3} defaultValue={page.sub} className={input} /></div>
+      <div><label htmlFor="lp_bullets" className="mb-1 block text-sm font-semibold">Bullet points</label><textarea id="lp_bullets" name="bullets" rows={6} defaultValue={page.bullets.join("\n")} className={input} /><p className="mt-1 text-xs text-muted">One per line, up to 8.</p></div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div><label htmlFor="lp_dest" className="mb-1 block text-sm font-semibold">Pre-select country <span className="font-normal text-muted">(optional)</span></label><select id="lp_dest" name="destination" defaultValue={page.destination ?? ""} className={input}><option value="">None</option>{destinations.map((d) => <option key={d.slug} value={d.slug}>{d.name}</option>)}</select></div>
+        <div><label htmlFor="lp_service" className="mb-1 block text-sm font-semibold">Related service <span className="font-normal text-muted">(optional)</span></label><select id="lp_service" name="service" defaultValue={page.service_slug ?? ""} className={input}><option value="">None</option>{services.map((s) => <option key={s.slug} value={s.slug}>{s.title}</option>)}</select></div>
+      </div>
+      <fieldset className="space-y-3">
+        <legend className="mb-1 text-sm font-semibold">FAQs <span className="font-normal text-muted">(up to 10)</span></legend>
+        {faqs.map((f, i) => (
+          <div key={i} className="space-y-2 rounded-xl border border-navy-100 bg-white p-3">
+            <input value={f.q} onChange={(e) => setFaq(i, "q", e.target.value)} maxLength={300} placeholder="Question" aria-label={`Question ${i + 1}`} className={input} />
+            <textarea value={f.a} onChange={(e) => setFaq(i, "a", e.target.value)} maxLength={1500} rows={2} placeholder="Answer" aria-label={`Answer ${i + 1}`} className={input} />
+            <button type="button" className="text-xs font-semibold text-red-700 hover:underline" onClick={() => setFaqs((x) => x.filter((_, j) => j !== i))}>Remove</button>
+          </div>
+        ))}
+        {faqs.length < 10 && <button type="button" className="text-sm font-semibold text-navy-700 hover:underline" onClick={() => setFaqs((x) => [...x, { q: "", a: "" }])}>+ Add FAQ</button>}
+      </fieldset>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="pub" defaultChecked={page.is_published} className="size-4 accent-navy-800" />Published (untick to hide this page)</label>
+      <div className="flex flex-wrap items-center gap-4">
+        <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save"}</Button>
+        {saved && <button type="button" disabled={busy} className="text-sm font-semibold text-red-700 hover:underline" onClick={async () => {
+          if (!window.confirm(hasDefault ? "Discard your changes and go back to the default content?" : "Delete this landing page?")) return;
+          const r = await call(url, "DELETE");
+          if (!r.ok) { setMsg({ tone: "error", text: r.error ?? "Failed" }); return; }
+          if (hasDefault) { window.location.reload(); } else { router.replace("/admin/landing-pages"); router.refresh(); }
+        }}>{hasDefault ? "Reset to default" : "Delete page"}</button>}
+      </div>
+    </form>
+  );
+}
+
 type PostForm = { id?: string; slug: string; title: string; excerpt: string; body: string; meta_title: string | null; meta_description: string | null; is_published: boolean };
 export function BlogEditor({ post }: { post?: PostForm }) {
   const router = useRouter();

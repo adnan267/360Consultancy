@@ -410,6 +410,16 @@ export class MemoryRepo implements Repo {
     for (const n of this.notifications) if (n.client_id === clientId && !n.read_at) n.read_at = new Date().toISOString();
   }
   async deleteFaq(id: string) { this.faqs = this.faqs.filter((f) => f.id !== id); }
+  landingPages: import("../types").LandingPageRow[] = [];
+  async listLandingPages() {
+    return [...this.landingPages].sort((a, b) => a.slug.localeCompare(b.slug)).map((l) => structuredClone(l));
+  }
+  async saveLandingPage(row: import("../types").LandingPageRow) {
+    const l = { ...structuredClone(row), updated_at: new Date().toISOString() };
+    this.landingPages = [...this.landingPages.filter((x) => x.slug !== row.slug), l];
+    return structuredClone(l);
+  }
+  async deleteLandingPage(slug: string) { this.landingPages = this.landingPages.filter((l) => l.slug !== slug); }
   async listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }) {
     return this.posts.filter((p) => !opts?.publishedOnly || p.is_published).sort((a, b) => (b.published_at ?? b.created_at).localeCompare(a.published_at ?? a.created_at)).slice(0, opts?.limit ?? 200).map((p) => ({ ...p }));
   }

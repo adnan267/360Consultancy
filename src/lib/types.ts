@@ -369,6 +369,11 @@ export interface CaseListRow {
 
 // ── CMS, messages, requests ─────────────────────────────────────────────────
 export interface Faq { id: string; question: string; answer: string; sort_order: number; is_published: boolean }
+export interface LandingPageRow {
+  slug: string; purpose: "study" | "work" | "visit" | "unsure"; destination: string | null;
+  title: string; headline: string; sub: string; bullets: string[]; faqs: { q: string; a: string }[];
+  service_slug: string | null; is_published: boolean; updated_at?: string;
+}
 export interface BlogPost {
   id: string; slug: string; title: string; excerpt: string; body: string;
   meta_title: string | null; meta_description: string | null;

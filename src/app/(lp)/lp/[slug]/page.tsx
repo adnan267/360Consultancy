@@ -5,17 +5,18 @@ import { Wizard } from "@/components/Wizard";
 import { FaqList } from "@/components/sections";
 import { Container } from "@/components/ui";
 import { COUNTRY_CONTENT, getCountryContent } from "@/data/countries";
-import { LANDING_PAGES, getLanding } from "@/data/landing";
 import { PROCESS_STEPS } from "@/data/faq";
 import { getDestinationCountries, getPublicServices, getActiveQuestions } from "@/lib/catalog";
 import { leadsEnabled } from "@/lib/env";
+import { countryLanding, getPublicLanding, listPublicLandingSlugs } from "@/lib/landing";
 import { whatsappLink } from "@/lib/site";
 
 export const revalidate = 300;
 type Props = { params: Promise<{ slug: string }> };
 
 async function resolve(slug: string) {
-  const l = getLanding(slug);
+  const l = await getPublicLanding(slug);
+  if (l === "hidden") return null;
   if (l) return { kind: "service" as const, l };
   const country = (await getDestinationCountries()).find((c) => c.slug === slug);
   const content = getCountryContent(slug);
@@ -24,7 +25,8 @@ async function resolve(slug: string) {
 }
 
 export async function generateStaticParams() {
-  return [...LANDING_PAGES.map((l) => ({ slug: l.slug })), ...(await getDestinationCountries()).map((c) => ({ slug: c.slug }))];
+  const slugs = new Set([...(await listPublicLandingSlugs()), ...(await getDestinationCountries()).map((c) => c.slug)]);
+  return [...slugs].map((slug) => ({ slug }));
 }
 
 // Ad landing pages are for paid traffic only: keep them out of search results.
@@ -42,14 +44,8 @@ export default async function LandingPageView({ params }: Props) {
   const wa = whatsappLink();
 
   const content = r.kind === "service"
-    ? { headline: r.l.headline, sub: r.l.sub, bullets: r.l.bullets, faqs: r.l.faqs, preset: { purpose: r.l.purpose } }
-    : {
-        headline: `${r.country.name} visa guidance — start with a clear plan`,
-        sub: `Understand the general process for ${r.country.name}, with links to the official source, and get your documents ready.`,
-        bullets: ["Study, work or visit guidance", "Document checklist for your case", "Consultant review of your file", `Official ${r.country.name} sources linked`],
-        faqs: [...r.content.faqs],
-        preset: { destination: r.country.slug as never },
-      };
+    ? { headline: r.l.headline, sub: r.l.sub, bullets: r.l.bullets, faqs: r.l.faqs, preset: { purpose: r.l.purpose, ...(r.l.destination ? { destination: r.l.destination as never } : {}) } }
+    : { ...countryLanding(r.country, [...r.content.faqs]), preset: { destination: r.country.slug as never } };
 
   return (
     <>

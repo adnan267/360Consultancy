@@ -478,6 +478,21 @@ export class SupabaseRepo implements Repo {
     const { error } = await db().from("faqs").delete().eq("id", id);
     fail(error, "deleteFaq");
   }
+  async listLandingPages() {
+    const { data, error } = await db().from("landing_pages").select("slug,purpose,destination,title,headline,sub,bullets,faqs,service_slug,is_published,updated_at").order("slug");
+    fail(error, "listLandingPages");
+    return (data ?? []) as import("../types").LandingPageRow[];
+  }
+  async saveLandingPage(row: import("../types").LandingPageRow) {
+    const { updated_at: _u, ...fields } = row;
+    const { data, error } = await db().from("landing_pages").upsert(fields, { onConflict: "slug" }).select("slug,purpose,destination,title,headline,sub,bullets,faqs,service_slug,is_published,updated_at").single();
+    fail(error, "saveLandingPage");
+    return data as import("../types").LandingPageRow;
+  }
+  async deleteLandingPage(slug: string) {
+    const { error } = await db().from("landing_pages").delete().eq("slug", slug);
+    fail(error, "deleteLandingPage");
+  }
   async listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }) {
     let q = db().from("blog_posts").select("*").order("published_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(opts?.limit ?? 200);
     if (opts?.publishedOnly) q = q.eq("is_published", true);

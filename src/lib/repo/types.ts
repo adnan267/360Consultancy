@@ -189,6 +189,9 @@ export interface Repo {
   listFaqs(opts?: { publishedOnly?: boolean }): Promise<Faq[]>;
   saveFaq(row: { id?: string; question: string; answer: string; sort_order?: number; is_published?: boolean }): Promise<Faq | null>;
   deleteFaq(id: string): Promise<void>;
+  listLandingPages(): Promise<import("../types").LandingPageRow[]>;
+  saveLandingPage(row: import("../types").LandingPageRow): Promise<import("../types").LandingPageRow>;
+  deleteLandingPage(slug: string): Promise<void>;
   listWizardQuestions(opts?: { activeOnly?: boolean }): Promise<import("../types").WizardQuestion[]>;
   saveWizardQuestion(row: Omit<import("../types").WizardQuestion, "id"> & { id?: string }): Promise<import("../types").WizardQuestion | null>;
   deleteWizardQuestion(id: string): Promise<void>;

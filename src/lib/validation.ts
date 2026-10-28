@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DESTINATIONS, PURPOSES } from "./wizard";
 
 const slug = z.string().regex(/^[a-z0-9-]{1,60}$/, "Invalid selection");
 
@@ -176,6 +177,19 @@ export const blogSchema = z.strictObject({
   is_published: z.boolean().default(false),
 });
 export const blogPatchSchema = blogSchema.partial();
+
+export const landingPageSchema = z.strictObject({
+  purpose: z.enum(PURPOSES),
+  destination: z.enum(DESTINATIONS).nullable().default(null),
+  title: z.string().trim().min(3).max(120),
+  headline: z.string().trim().min(3).max(160),
+  sub: z.string().trim().max(400).default(""),
+  bullets: z.array(z.string().trim().min(2).max(120)).max(8).default([]),
+  faqs: z.array(z.strictObject({ q: z.string().trim().min(3).max(300), a: z.string().trim().min(3).max(1500) })).max(10).default([]),
+  service_slug: z.string().trim().regex(/^[a-z0-9-]{1,80}$/).nullable().default(null),
+  is_published: z.boolean().default(true),
+});
+export const landingSlugSchema = z.string().regex(/^[a-z0-9-]{1,80}$/);
 
 export const caseMessageSchema = z.strictObject({ body: z.string().trim().min(1, "Write a message").max(2000) });
 export const staffMessageSchema = z.strictObject({ body: z.string().trim().min(1).max(2000), internal: z.boolean().default(false) });
