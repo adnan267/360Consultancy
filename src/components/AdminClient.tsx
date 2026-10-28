@@ -275,7 +275,7 @@ export function SettingsForm({ initial }: { initial: { seo_title: string; seo_de
         <h2 className="text-lg font-bold text-navy-900">Email</h2>
         <div>
           <label htmlFor="mail_from" className="mb-1 block text-sm font-semibold">Sending address (From)</label>
-          <input id="mail_from" type="email" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="info@360consultancy.pk" className={input} />
+          <input id="mail_from" type="email" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="admin@360consultancy.pk" className={input} />
           <p className="mt-1 text-xs text-muted">Emails to customers are sent from this address. It must belong to a domain verified with your email provider. Leave empty to use the server default.</p>
         </div>
         <div>
