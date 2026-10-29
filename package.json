@@ -15,6 +15,7 @@
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@supabase/supabase-js": "2.118.0",
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.2",
     "flag-icons": "^7.6.0",
     "jose": "^6.0.11",

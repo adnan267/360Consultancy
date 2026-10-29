@@ -5,6 +5,7 @@ import "./globals.css";
 import { siteUrl } from "@/lib/env";
 import { getSiteSettings } from "@/lib/settings";
 import { site } from "@/lib/site";
+import { Analytics } from "@vercel/analytics/next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { seo_title, seo_description } = await getSiteSettings();
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         {children}
+        <Analytics />
       </body>
     </html>
   );
