@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">360 Consultancy</string>
+    <string name="title_activity_main">360 Consultancy</string>
+    <string name="package_name">pk.consultancy360.app</string>
+    <string name="custom_url_scheme">pk.consultancy360.app</string>
+</resources>

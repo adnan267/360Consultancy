@@ -1,0 +1,11 @@
+{
+  "appId": "pk.consultancy360.app",
+  "appName": "360 Consultancy",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.360consultancy.pk",
+    "cleartext": false,
+    "allowNavigation": ["www.360consultancy.pk", "360consultancy.pk"]
+  },
+  "android": { "allowMixedContent": false }
+}
