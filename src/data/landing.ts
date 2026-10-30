@@ -4,9 +4,10 @@
  * Copy follows ad-platform rules and our own site rules:
  * no guarantees, no invented fees, statistics, reviews or timelines.
  */
+import type { Purpose } from "@/lib/wizard";
 export interface LandingPage {
   slug: string;
-  purpose: "study" | "work" | "visit" | "unsure";
+  purpose: Purpose;
   /** Pre-selects this destination in the assessment wizard. */
   destination?: string;
   title: string;

@@ -1,7 +1,7 @@
 import { notifyAdmins } from "./email";
 import { leadsEnabled } from "./env";
 import { getRepo, isDatabaseConfigured } from "./repo";
-import { leadRequestSchema, suggest } from "./wizard";
+import { leadPriority, leadRequestSchema, suggest } from "./wizard";
 import type { Result } from "./bookings";
 
 const fail = (status: number, error: string, fields?: Record<string, string[]>) => ({ ok: false as const, status, error, fields });
@@ -40,15 +40,16 @@ export async function createLead(input: unknown, ctx: { ip: string }): Promise<R
   if (Object.keys(missing).length) return fail(422, "Please answer the highlighted questions.", missing);
 
   const s = suggest(answers);
+  const { priority, flags } = leadPriority(answers);
   await repo.insertLead({
     name: contact.name,
     email: contact.email,
-    phone: contact.phone ?? null,
+    phone: contact.phone,
     purpose: answers.purpose,
     destination: answers.destination,
-    answers: { ...answers, ...(extraAnswers.length ? { extra_answers: extraAnswers } : {}), ...(attribution && Object.keys(attribution).length ? { attribution } : {}) },
+    answers: { ...answers, priority, ...(flags.length ? { flags } : {}), ...(extraAnswers.length ? { extra_answers: extraAnswers } : {}), ...(attribution && Object.keys(attribution).length ? { attribution } : {}) },
     suggested_services: s.serviceSlugs,
   });
-  await notifyAdmins("New lead from the website", `${contact.name} saved their details (${answers.purpose} → ${answers.destination}). View it under Leads in the admin panel.`);
+  await notifyAdmins("New lead from the website", `${contact.name} saved their details (${answers.purpose} → ${answers.destination}, priority: ${priority}). WhatsApp: ${contact.phone}. View it under Leads in the admin panel.`);
   return { ok: true, suggestedServices: s.serviceSlugs };
 }

@@ -24,15 +24,16 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
       <p className="text-sm text-muted">From the “Find your visa options” wizard. These are enquiries, not bookings, and not eligibility decisions.</p>
       <Card className="overflow-x-auto">
         {rows.length ? (
-          <table className="w-full min-w-[56rem] text-left text-sm">
-            <thead className="text-xs uppercase tracking-wider text-muted"><tr><th className="py-2">Received (PKT)</th><th>Contact</th><th>Goal</th><th>Destination</th><th>Answers</th><th>Suggested</th><th>Status</th></tr></thead>
+          <table className="w-full min-w-[60rem] text-left text-sm">
+            <thead className="text-xs uppercase tracking-wider text-muted"><tr><th className="py-2">Received (PKT)</th><th>Priority</th><th>Contact</th><th>Goal</th><th>Destination</th><th>Answers</th><th>Suggested</th><th>Status</th></tr></thead>
             <tbody className="divide-y divide-line align-top">{rows.map((l) => (
               <tr key={l.id}>
                 <td className="py-3 text-muted">{pkt(l.created_at)}</td>
+                <td>{(() => { const pr = String(l.answers.priority ?? ""); return pr ? <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${pr === "hot" ? "bg-red-100 text-red-800" : pr === "warm" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>{LABELS[pr] ?? pr}</span> : null; })()}{Array.isArray(l.answers.flags) && (l.answers.flags as string[]).map((f) => <p key={f} className="mt-1 text-xs text-red-700">{f}</p>)}</td>
                 <td>{l.name}<br /><a className="text-navy-700 hover:underline" href={`mailto:${l.email}`}>{l.email}</a>{l.phone && <><br /><span className="text-xs text-muted">{l.phone}</span></>}</td>
                 <td>{LABELS[l.purpose] ?? l.purpose}</td>
                 <td>{LABELS[l.destination] ?? l.destination}</td>
-                <td className="max-w-xs break-words text-xs text-muted">{Object.entries(l.answers).filter(([k]) => k !== "purpose" && k !== "destination").map(([k, v]) => k === "attribution" && v && typeof v === "object" ? `source: ${Object.entries(v as Record<string, string>).map(([a, b]) => `${a.replace("utm_", "")}=${b}`).join(", ")}` : k === "extra_answers" && Array.isArray(v) ? (v as { question: string; answer: string }[]).map((x) => `${x.question}: ${x.answer}`).join(" · ") : `${k}: ${String(v)}`).join(" · ")}</td>
+                <td className="max-w-xs break-words text-xs text-muted">{Object.entries(l.answers).filter(([k]) => k !== "purpose" && k !== "destination" && k !== "priority" && k !== "flags").map(([k, v]) => k === "attribution" && v && typeof v === "object" ? `source: ${Object.entries(v as Record<string, string>).map(([a, b]) => `${a.replace("utm_", "")}=${b}`).join(", ")}` : k === "extra_answers" && Array.isArray(v) ? (v as { question: string; answer: string }[]).map((x) => `${x.question}: ${x.answer}`).join(" · ") : `${k}: ${String(v)}`).join(" · ")}</td>
                 <td className="text-xs">{l.suggested_services.join(", ")}</td>
                 <td><LeadStatusSelect id={l.id} status={l.status} /></td>
               </tr>

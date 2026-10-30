@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { POST as postLead } from "@/app/api/leads/route";
 import { PATCH as patchLead } from "@/app/api/admin/leads/[id]/route";
 import { createLead } from "@/lib/leads";
-import { activeSteps, suggest, validateStep } from "@/lib/wizard";
+import { activeSteps, leadPriority, suggest, validateStep } from "@/lib/wizard";
 import { getPublicScholarships } from "@/lib/catalog";
 import type { MemoryRepo } from "@/lib/repo";
 import { cookieFor, freshRepo, req } from "./helpers";
@@ -25,6 +25,32 @@ describe("wizard step validation", () => {
   it("skips the profile step when unsure", () => {
     expect(activeSteps({ purpose: "unsure" })).not.toContain("profile");
     expect(activeSteps({ purpose: "study" })).toContain("profile");
+  });
+});
+
+describe("readiness and priority", () => {
+  it("requires passport, documents, timeline and service level", () => {
+    expect(validateStep("readiness", {})).toHaveProperty("passportStatus");
+    expect(validateStep("readiness", {})).toHaveProperty("docsStatus");
+    expect(validateStep("support", {})).toHaveProperty("serviceLevel");
+  });
+  it("skips profile for business and holy tours", () => {
+    expect(activeSteps({ purpose: "business" })).not.toContain("profile");
+    expect(activeSteps({ purpose: "spiritual" })).toContain("readiness");
+  });
+  it("scores hot, warm and cold leads and flags passport problems", () => {
+    expect(leadPriority({ timeline: "asap", passportStatus: "valid_6m", docsStatus: "ready", serviceLevel: "full" }).priority).toBe("hot");
+    expect(leadPriority({ timeline: "3_to_6_months", passportStatus: "expiring", docsStatus: "partial", serviceLevel: "review" }).priority).toBe("warm");
+    const c = leadPriority({ timeline: "flexible", passportStatus: "none", docsStatus: "none", serviceLevel: "guidance" });
+    expect(c.priority).toBe("cold");
+    expect(c.flags).toContain("no valid passport");
+  });
+  it("stores priority with the lead", async () => {
+    process.env.LEADS_ENABLED = "true";
+    const a = { ...answers, passportStatus: "valid_6m", docsStatus: "ready", serviceLevel: "full" };
+    expect((await createLead({ answers: a, contact }, { ip: "9.9.9.9" })).ok).toBe(true);
+    const { rows } = await repo.listLeads({ limit: 10, offset: 0 });
+    expect(rows[0].answers.priority).toBe("hot");
   });
 });
 

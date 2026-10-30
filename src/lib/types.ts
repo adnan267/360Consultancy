@@ -1,3 +1,4 @@
+import type { Purpose } from "./wizard";
 export const BOOKING_STATUSES = [
   "request_received",
   "awaiting_payment",
@@ -370,7 +371,7 @@ export interface CaseListRow {
 // ── CMS, messages, requests ─────────────────────────────────────────────────
 export interface Faq { id: string; question: string; answer: string; sort_order: number; is_published: boolean }
 export interface LandingPageRow {
-  slug: string; purpose: "study" | "work" | "visit" | "unsure"; destination: string | null;
+  slug: string; purpose: Purpose; destination: string | null;
   title: string; headline: string; sub: string; bullets: string[]; faqs: { q: string; a: string }[];
   service_slug: string | null; is_published: boolean; updated_at?: string;
 }
@@ -384,7 +385,7 @@ export interface DataRequest { id: string; client_id: string; kind: "export" | "
 export interface AdminListRow { id: string; email: string; role: Role; is_active: boolean; last_login_at: string | null; created_at: string }
 
 export type QuestionKind = "text" | "select" | "yesno";
-export interface WizardQuestion { id: string; label: string; help: string | null; kind: QuestionKind; options: string[]; purpose: "study" | "work" | "visit" | "unsure" | null; required: boolean; sort_order: number; is_active: boolean }
+export interface WizardQuestion { id: string; label: string; help: string | null; kind: QuestionKind; options: string[]; purpose: Purpose | null; required: boolean; sort_order: number; is_active: boolean }
 export const EMAIL_TEMPLATE_KEYS = ["case_status", "payment_verified", "deliverables_ready", "new_message"] as const;
 export type EmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number];
 export interface EmailTemplate { key: EmailTemplateKey; subject: string; body: string; updated_at: string }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { BOOKING_STATUS_LABEL, LEAD_STATUSES, ROLE_LABEL, type BookingStatus, type LeadStatus, type PaymentStatus, type Role } from "@/lib/types";
 import { BOOKING_TRANSITIONS } from "@/lib/status";
 import { Button, Notice } from "./ui";
+import type { Purpose } from "@/lib/wizard";
 
 const input = "block w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-gold-500/60";
 
@@ -398,7 +399,7 @@ export function NewLandingForm() {
   );
 }
 
-type LandingForm = { slug: string; purpose: "study" | "work" | "visit" | "unsure"; destination: string | null; title: string; headline: string; sub: string; bullets: string[]; faqs: { q: string; a: string }[]; service_slug: string | null; is_published: boolean };
+type LandingForm = { slug: string; purpose: Purpose; destination: string | null; title: string; headline: string; sub: string; bullets: string[]; faqs: { q: string; a: string }[]; service_slug: string | null; is_published: boolean };
 export function LandingEditor({ page, hasDefault, saved, destinations, services }: { page: LandingForm; hasDefault: boolean; saved: boolean; destinations: { slug: string; name: string }[]; services: { slug: string; title: string }[] }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ tone: "error" | "success"; text: string } | null>(null);
@@ -424,7 +425,7 @@ export function LandingEditor({ page, hasDefault, saved, destinations, services 
       {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
       <div className="grid gap-4 sm:grid-cols-2">
         <div><label htmlFor="lp_title" className="mb-1 block text-sm font-semibold">Page title <span className="font-normal text-muted">(browser tab)</span></label><input id="lp_title" name="title" required minLength={3} maxLength={120} defaultValue={page.title} className={input} /></div>
-        <div><label htmlFor="lp_purpose" className="mb-1 block text-sm font-semibold">Visitor goal</label><select id="lp_purpose" name="purpose" defaultValue={page.purpose} className={input}><option value="study">Study</option><option value="work">Work</option><option value="visit">Visit</option><option value="unsure">Not sure / any</option></select></div>
+        <div><label htmlFor="lp_purpose" className="mb-1 block text-sm font-semibold">Visitor goal</label><select id="lp_purpose" name="purpose" defaultValue={page.purpose} className={input}><option value="study">Study</option><option value="work">Work</option><option value="visit">Visit</option><option value="business">Business</option><option value="spiritual">Holy tour</option><option value="unsure">Not sure / any</option></select></div>
       </div>
       <div><label htmlFor="lp_headline" className="mb-1 block text-sm font-semibold">Headline</label><input id="lp_headline" name="headline" required minLength={3} maxLength={160} defaultValue={page.headline} className={input} /></div>
       <div><label htmlFor="lp_sub" className="mb-1 block text-sm font-semibold">Text under the headline</label><textarea id="lp_sub" name="sub" maxLength={400} rows={3} defaultValue={page.sub} className={input} /></div>

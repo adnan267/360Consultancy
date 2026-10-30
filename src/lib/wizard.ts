@@ -6,7 +6,7 @@ import { z } from "zod";
  * Shared by the client (step validation) and the server (/api/leads).
  */
 export const DESTINATIONS = ["united-states", "united-kingdom", "australia", "canada", "serbia", "mexico", "china", "germany", "france", "italy", "spain", "ireland", "netherlands", "sweden", "norway", "denmark", "finland", "poland", "new-zealand", "japan", "south-korea", "united-arab-emirates", "saudi-arabia", "russia", "kyrgyzstan", "uzbekistan", "undecided"] as const;
-export const PURPOSES = ["study", "work", "visit", "unsure"] as const;
+export const PURPOSES = ["study", "work", "visit", "business", "spiritual", "unsure"] as const;
 export type Purpose = (typeof PURPOSES)[number];
 
 const opt = <T extends readonly [string, ...string[]]>(v: T) => z.enum(v);
@@ -30,19 +30,24 @@ export const wizardAnswersSchema = z.strictObject({
   budgetBand: opt(["under_500k", "500k_1500k", "1500k_3000k", "3000k_plus", "unsure"]).optional(),
   fundingSource: opt(["self", "family", "scholarship", "employer", "mixed"]).optional(),
   timeline: opt(["asap", "within_3_months", "3_to_6_months", "flexible"]).optional(),
+  // readiness
+  passportStatus: opt(["valid_6m", "expiring", "none"]).optional(),
+  docsStatus: opt(["ready", "partial", "none"]).optional(),
+  serviceLevel: opt(["full", "review", "guidance"]).optional(),
   wantsScholarshipHelp: z.boolean().optional(),
   wantsDocReview: z.boolean().optional(),
 });
 export type WizardAnswers = z.infer<typeof wizardAnswersSchema>;
 export type WizardDraft = Partial<WizardAnswers>;
 
-export type StepId = "purpose" | "destination" | "profile" | "budget" | "support" | "review";
-export const STEP_ORDER: StepId[] = ["purpose", "destination", "profile", "budget", "support", "review"];
+export type StepId = "purpose" | "destination" | "profile" | "readiness" | "budget" | "support" | "review";
+export const STEP_ORDER: StepId[] = ["purpose", "destination", "profile", "readiness", "budget", "support", "review"];
 
 export const STEP_LABEL: Record<StepId, string> = {
   purpose: "Your goal",
   destination: "Destination",
   profile: "Your profile",
+  readiness: "Readiness",
   budget: "Budget",
   support: "Support",
   review: "Review",
@@ -75,12 +80,17 @@ export function validateStep(step: StepId, a: WizardDraft): Record<string, strin
         need("travelWindow", "Select when you plan to travel");
       }
       break;
+    case "readiness":
+      need("passportStatus", "Select your passport status");
+      need("docsStatus", "Select your document status");
+      break;
     case "budget":
       need("budgetBand", "Select a budget range");
       need("fundingSource", "Select how the costs will be funded");
       break;
     case "support":
-      need("timeline", "Select your timeline");
+      need("timeline", "Select when you want to travel");
+      need("serviceLevel", "Select the help you want");
       break;
     case "review": {
       const r = wizardAnswersSchema.safeParse(a);
@@ -93,7 +103,23 @@ export function validateStep(step: StepId, a: WizardDraft): Record<string, strin
 
 /** Steps shown for the current answers (profile is skipped when purpose is "unsure"). */
 export function activeSteps(a: WizardDraft): StepId[] {
-  return STEP_ORDER.filter((s) => !(s === "profile" && (a.purpose === "unsure" || !a.purpose)));
+  return STEP_ORDER.filter((s) => !(s === "profile" && (!a.purpose || ["unsure", "business", "spiritual"].includes(a.purpose))));
+}
+
+export type LeadPriority = "hot" | "warm" | "cold";
+
+/** Follow-up priority for the sales team. Deterministic, server-recomputed; never shown as a decision about the person. */
+export function leadPriority(a: WizardDraft): { priority: LeadPriority; flags: string[] } {
+  let n = 0;
+  n += { asap: 3, within_3_months: 2, "3_to_6_months": 1, flexible: 0 }[a.timeline ?? "flexible"] ?? 0;
+  n += { valid_6m: 2, expiring: 1, none: 0 }[a.passportStatus ?? "none"] ?? 0;
+  n += { ready: 2, partial: 1, none: 0 }[a.docsStatus ?? "none"] ?? 0;
+  n += { full: 2, review: 1, guidance: 0 }[a.serviceLevel ?? "guidance"] ?? 0;
+  const flags: string[] = [];
+  if (a.passportStatus === "expiring") flags.push("passport expiring (<6 months)");
+  if (a.passportStatus === "none") flags.push("no valid passport");
+  if (a.docsStatus === "none") flags.push("no documents yet");
+  return { priority: n >= 7 ? "hot" : n >= 4 ? "warm" : "cold", flags };
 }
 
 export interface Suggestion {
@@ -113,6 +139,10 @@ export function suggest(a: WizardDraft): Suggestion {
     "These are suggestions to help you plan — not an eligibility assessment. Final decisions are made only by the relevant authority.",
   ];
 
+  if (a.serviceLevel === "full") serviceSlugs.push("document-review", "application-assistance");
+  if (a.serviceLevel === "review") serviceSlugs.push("document-review");
+  if (a.passportStatus === "expiring" || a.passportStatus === "none") notes.push("Most destinations expect a passport valid for at least 6 months beyond your travel dates. Renew or apply for it first.");
+  if (a.docsStatus === "none" || a.docsStatus === "partial") notes.push("Use the document checklist to see what is still needed before you apply.");
   if (a.wantsDocReview || a.timeline === "asap" || a.timeline === "within_3_months") serviceSlugs.push("document-review");
   if (a.timeline === "asap") serviceSlugs.push("application-assistance");
 
@@ -137,9 +167,7 @@ export const leadContactSchema = z.strictObject({
   phone: z
     .string()
     .trim()
-    .regex(/^\+?[0-9\s\-()]{7,20}$/, "Please enter a valid phone / WhatsApp number")
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
+    .regex(/^\+?[0-9\s\-()]{7,20}$/, "Please enter a valid phone / WhatsApp number"),
   consentPrivacy: z.literal(true, { error: "You must accept the Privacy Policy" }),
   /** Honeypot */
   website: z.string().max(200).optional().default(""),
@@ -154,7 +182,9 @@ export const leadRequestSchema = z.strictObject({
 export type LeadRequest = z.infer<typeof leadRequestSchema>;
 
 export const LABELS: Record<string, string> = {
-  study: "Study", work: "Work", visit: "Visit / tourism", unsure: "Not sure yet",
+  study: "Study", work: "Work", visit: "Visit / tourism", spiritual: "Holy tour", unsure: "Not sure yet",
+  valid_6m: "Valid for 6+ months", expiring: "Expires within 6 months", ready: "All ready", partial: "Some ready", full: "Full help: guidance, document review and file preparation", review: "Document review", guidance: "Guidance only",
+  hot: "Hot", warm: "Warm", cold: "Cold",
   "united-states": "United States", "united-kingdom": "United Kingdom", australia: "Australia", canada: "Canada", serbia: "Serbia", mexico: "Mexico", china: "China", "germany": "Germany", "france": "France", "italy": "Italy", "spain": "Spain", "ireland": "Ireland", "netherlands": "Netherlands", "sweden": "Sweden", "norway": "Norway", "denmark": "Denmark", "finland": "Finland", "poland": "Poland", "new-zealand": "New Zealand", "japan": "Japan", "south-korea": "South Korea", "united-arab-emirates": "United Arab Emirates", "saudi-arabia": "Saudi Arabia", "russia": "Russia", "kyrgyzstan": "Kyrgyzstan", "uzbekistan": "Uzbekistan", undecided: "Not decided",
   high_school: "High school", bachelor: "Bachelor's", master: "Master's", doctoral: "Doctoral", diploma: "Diploma", other: "Other",
   have: "Have a test result", planning: "Planning to take one", none: "No test planned",

@@ -8,7 +8,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), 
 
 let repo: MemoryRepo;
 let mail: CapturingEmail;
-const contact = { name: "Sana Malik", email: "s@example.com", phone: "", consentPrivacy: true, website: "" };
+const contact = { name: "Sana Malik", email: "s@example.com", phone: "+92 300 1234567", consentPrivacy: true, website: "" };
 const answers = { purpose: "study", destination: "canada", educationLevel: "bachelor", targetLevel: "master", englishTest: "have", budgetBand: "unsure", fundingSource: "self", timeline: "flexible" };
 
 beforeEach(() => { repo = freshRepo(); mail = captureEmail(); process.env.LEADS_ENABLED = "true"; });

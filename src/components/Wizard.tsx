@@ -143,6 +143,7 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
           {step === "purpose" && "What are you planning?"}
           {step === "destination" && "Where would you like to go?"}
           {step === "profile" && (a.purpose === "study" ? "About your studies" : a.purpose === "work" ? "About your work background" : "About your visit")}
+          {step === "readiness" && "How ready are you?"}
           {step === "budget" && "Budget and funding"}
           {step === "support" && "How can we help?"}
           {step === "review" && "Review your answers"}
@@ -151,7 +152,7 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
         <div className="space-y-8">
           {step === "purpose" && (
             <Group legend="Choose one" error={err("purpose")}>
-              {(["study", "work", "visit", "unsure"] as const).map((p) => <Choice key={p} name={`${uid}-purpose`} value={p} current={a.purpose} onChange={(v) => { setA({ purpose: v as never }); setErrors({}); }}>{p === "visit" ? "Visit / tourism (incl. e-visa)" : LABELS[p]}</Choice>)}
+              {(["work", "visit", "study", "business", "spiritual", "unsure"] as const).map((p) => <Choice key={p} name={`${uid}-purpose`} value={p} current={a.purpose} onChange={(v) => { setA({ purpose: v as never }); setErrors({}); }}>{p === "visit" ? "Visit / tourism (incl. e-visa)" : p === "unsure" ? "Not sure, guide me" : LABELS[p]}</Choice>)}
             </Group>
           )}
 
@@ -194,6 +195,15 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
             </Group>
           </>)}
 
+          {step === "readiness" && (<>
+            <Group legend="Is your passport valid for at least 6 months?" error={err("passportStatus")} cols={3}>
+              {([["valid_6m", "Yes, valid for 6+ months"], ["expiring", "Expires within 6 months"], ["none", "I do not have a passport"]] as const).map(([v, l]) => <Choice key={v} name={`${uid}-pp`} value={v} current={a.passportStatus} onChange={(x) => set("passportStatus", x as never)}>{l}</Choice>)}
+            </Group>
+            <Group legend="Do you have your supporting documents?" error={err("docsStatus")} cols={3}>
+              {([["ready", "Yes, all ready"], ["partial", "Some are ready"], ["none", "Not yet"]] as const).map(([v, l]) => <Choice key={v} name={`${uid}-ds`} value={v} current={a.docsStatus} onChange={(x) => set("docsStatus", x as never)}>{l}</Choice>)}
+            </Group>
+          </>)}
+
           {step === "budget" && (<>
             <Group legend="Overall budget for the plan (approximate)" error={err("budgetBand")}>
               {(["under_500k", "500k_1500k", "1500k_3000k", "3000k_plus", "unsure"] as const).map((v) => <Choice key={v} name={`${uid}-bb`} value={v} current={a.budgetBand} onChange={(x) => set("budgetBand", x as never)}>{v === "unsure" ? "Not sure yet" : LABELS[v]}</Choice>)}
@@ -204,8 +214,11 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
           </>)}
 
           {step === "support" && (<>
-            <Group legend="Your timeline" error={err("timeline")}>
-              {(["asap", "within_3_months", "3_to_6_months", "flexible"] as const).map((v) => <Choice key={v} name={`${uid}-tm`} value={v} current={a.timeline} onChange={(x) => set("timeline", x as never)}>{LABELS[v]}</Choice>)}
+            <Group legend="When do you want to travel?" error={err("timeline")}>
+              {(["asap", "within_3_months", "3_to_6_months", "flexible"] as const).map((v) => <Choice key={v} name={`${uid}-tm`} value={v} current={a.timeline} onChange={(x) => set("timeline", x as never)}>{v === "asap" ? "Immediately" : v === "flexible" ? "Later / flexible" : LABELS[v]}</Choice>)}
+            </Group>
+            <Group legend="Are you ready for our services?" error={err("serviceLevel")} cols={1}>
+              {(["full", "review", "guidance"] as const).map((v) => <Choice key={v} name={`${uid}-sl`} value={v} current={a.serviceLevel} onChange={(x) => set("serviceLevel", x as never)}>{LABELS[v]}</Choice>)}
             </Group>
             <fieldset><legend className="mb-3 text-base font-bold text-navy-900">Anything else? <span className="font-normal text-muted">(optional)</span></legend>
               <div className="space-y-2">
@@ -217,7 +230,7 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
 
           {step === "review" && (<>
             <dl className="divide-y divide-line rounded-xl border border-line text-sm">
-              {(["purpose", "destination", "educationLevel", "targetLevel", "fieldOfStudy", "englishTest", "occupation", "yearsExperience", "jobOffer", "visitPurpose", "travelWindow", "budgetBand", "fundingSource", "timeline"] as const)
+              {(["purpose", "destination", "educationLevel", "targetLevel", "fieldOfStudy", "englishTest", "occupation", "yearsExperience", "jobOffer", "visitPurpose", "travelWindow", "passportStatus", "docsStatus", "budgetBand", "fundingSource", "timeline", "serviceLevel"] as const)
                 .filter((k) => a[k] !== undefined && a[k] !== "")
                 .map((k) => <div key={k} className="grid grid-cols-[10rem_1fr] gap-3 px-4 py-2.5"><dt className="text-muted">{k.replace(/([A-Z])/g, " $1").toLowerCase()}</dt><dd className="font-semibold text-navy-900">{LABELS[String(a[k])] ?? String(a[k])}</dd></div>)}
             </dl>
@@ -243,13 +256,13 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
               <Notice tone="success" title="Thank you — your details are saved">We will use them to follow up about your options. This is not a booking or an eligibility decision.</Notice>
             ) : (
               <form onSubmit={save} noValidate className="space-y-4 rounded-xl border border-line bg-mist/60 p-5" aria-busy={saving}>
-                <h3 className="text-lg font-extrabold text-navy-900">Want us to follow up?</h3>
-                <p className="text-sm text-muted">Optional. We only collect what is needed to contact you. No passport or ID details.</p>
+                <h3 className="text-lg font-extrabold text-navy-900">Get a free consultation</h3>
+                <p className="text-sm text-muted">We will contact you on WhatsApp. We only collect what is needed to contact you. No passport or ID details.</p>
                 {formErr && <Notice tone="error">{formErr}</Notice>}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div><label htmlFor={`${uid}-n`} className="mb-1 block text-sm font-semibold">Name</label><input id={`${uid}-n`} name="name" required minLength={2} maxLength={100} autoComplete="name" className={input} disabled={saving} aria-invalid={contactErr.name ? true : undefined} />{contactErr.name?.map((m) => <p key={m} className="mt-1 text-sm font-medium text-red-700">{m}</p>)}</div>
                   <div><label htmlFor={`${uid}-e`} className="mb-1 block text-sm font-semibold">Email</label><input id={`${uid}-e`} name="email" type="email" required maxLength={254} autoComplete="email" className={input} disabled={saving} aria-invalid={contactErr.email ? true : undefined} />{contactErr.email?.map((m) => <p key={m} className="mt-1 text-sm font-medium text-red-700">{m}</p>)}</div>
-                  <div className="sm:col-span-2"><label htmlFor={`${uid}-p`} className="mb-1 block text-sm font-semibold">Phone / WhatsApp <span className="font-normal text-muted">(optional)</span></label><input id={`${uid}-p`} name="phone" type="tel" autoComplete="tel" className={input} disabled={saving} aria-invalid={contactErr.phone ? true : undefined} />{contactErr.phone?.map((m) => <p key={m} className="mt-1 text-sm font-medium text-red-700">{m}</p>)}</div>
+                  <div className="sm:col-span-2"><label htmlFor={`${uid}-p`} className="mb-1 block text-sm font-semibold">WhatsApp number</label><input id={`${uid}-p`} name="phone" type="tel" required autoComplete="tel" className={input} disabled={saving} aria-invalid={contactErr.phone ? true : undefined} />{contactErr.phone?.map((m) => <p key={m} className="mt-1 text-sm font-medium text-red-700">{m}</p>)}</div>
                 </div>
                 {questions.filter((q) => !q.purpose || q.purpose === a.purpose).map((q) => (
                   <div key={q.id}>
@@ -263,7 +276,7 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
                 <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
                 <label className="flex items-start gap-3 text-sm text-muted"><input type="checkbox" name="consentPrivacy" required disabled={saving} className="mt-0.5 size-5 shrink-0 accent-navy-800" /><span>I have read and accept the <a href="/privacy" target="_blank" className="font-semibold text-navy-700 underline">Privacy Policy</a>.</span></label>
                 {contactErr.consentPrivacy?.map((m) => <p key={m} className="text-sm font-medium text-red-700">{m}</p>)}
-                <Button type="submit" disabled={saving}>{saving ? <><Loader2 className="size-4 animate-spin" /> Saving…</> : "Save my details"}</Button>
+                <Button type="submit" disabled={saving}>{saving ? <><Loader2 className="size-4 animate-spin" /> Saving…</> : "Request free consultation"}</Button>
               </form>
             )) : (
               <Notice tone="info" title="Follow-up requests are not open yet">You can still use the suggestions above. Saving your details will be available once our services open.</Notice>

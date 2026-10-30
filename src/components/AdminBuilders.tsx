@@ -45,7 +45,7 @@ export function QuestionManager({ initial }: { initial: WizardQuestion[] }) {
               <input name="help" defaultValue={q.help ?? ""} maxLength={400} placeholder="Help text (optional)" aria-label="Help text" className={input} />
               {q.kind === "select" && <textarea name="options" defaultValue={q.options.join("\n")} rows={3} aria-label="Options, one per line" className={input} />}
               <div className="flex flex-wrap items-center gap-4">
-                <label className="flex items-center gap-2 text-sm">Show for <select name="purpose" defaultValue={q.purpose ?? ""} className={`${input} !w-36`}><option value="">Everyone</option><option value="study">Study</option><option value="work">Work</option><option value="visit">Visit</option><option value="unsure">Not sure</option></select></label>
+                <label className="flex items-center gap-2 text-sm">Show for <select name="purpose" defaultValue={q.purpose ?? ""} className={`${input} !w-36`}><option value="">Everyone</option><option value="study">Study</option><option value="work">Work</option><option value="visit">Visit</option><option value="business">Business</option><option value="spiritual">Holy tour</option><option value="unsure">Not sure</option></select></label>
                 <label className="flex items-center gap-2 text-sm">Order <input name="sort" type="number" min={0} defaultValue={q.sort_order} className={`${input} !w-24`} /></label>
                 <label className="flex items-center gap-2 text-sm"><input name="required" type="checkbox" defaultChecked={q.required} className="size-4 accent-navy-800" />Required</label>
                 <label className="flex items-center gap-2 text-sm"><input name="active" type="checkbox" defaultChecked={q.is_active} className="size-4 accent-navy-800" />Shown</label>
@@ -62,7 +62,7 @@ export function QuestionManager({ initial }: { initial: WizardQuestion[] }) {
         <input name="help" maxLength={400} placeholder="Help text (optional)" aria-label="Help text" className={input} />
         <div className="flex flex-wrap gap-4">
           <label className="flex items-center gap-2 text-sm">Type <select name="kind" defaultValue="text" className={`${input} !w-36`}><option value="text">Short text</option><option value="select">Choose one</option><option value="yesno">Yes / No</option></select></label>
-          <label className="flex items-center gap-2 text-sm">Show for <select name="purpose" defaultValue="" className={`${input} !w-36`}><option value="">Everyone</option><option value="study">Study</option><option value="work">Work</option><option value="visit">Visit</option><option value="unsure">Not sure</option></select></label>
+          <label className="flex items-center gap-2 text-sm">Show for <select name="purpose" defaultValue="" className={`${input} !w-36`}><option value="">Everyone</option><option value="study">Study</option><option value="work">Work</option><option value="visit">Visit</option><option value="business">Business</option><option value="spiritual">Holy tour</option><option value="unsure">Not sure</option></select></label>
           <label className="flex items-center gap-2 text-sm"><input name="required" type="checkbox" className="size-4 accent-navy-800" />Required</label>
         </div>
         <textarea name="options" rows={3} placeholder="Options, one per line (only for “Choose one”)" aria-label="Options" className={input} />
