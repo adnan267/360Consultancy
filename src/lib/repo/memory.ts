@@ -382,6 +382,26 @@ export class MemoryRepo implements Repo {
   wizardQuestions: import("../types").WizardQuestion[] = [];
   emailTemplates: import("../types").EmailTemplate[] = [];
   notifications: import("../types").ClientNotification[] = [];
+  chatThreads: import("../types").ChatThread[] = [];
+  chatMessages: import("../types").ChatMessage[] = [];
+  async createChatThread(t: { token_hash: string; visitor_name: string; visitor_contact: string | null; landing: string | null }) {
+    const now = new Date().toISOString();
+    const row = { ...t, id: crypto.randomUUID(), status: "open" as const, unread_admin: true, created_at: now, last_message_at: now };
+    this.chatThreads.push(row);
+    return { ...row };
+  }
+  async getChatThreadByTokenHash(hash: string) { const t = this.chatThreads.find((x) => x.token_hash === hash); return t ? { ...t } : null; }
+  async getChatThread(id: string) { const t = this.chatThreads.find((x) => x.id === id); return t ? { ...t } : null; }
+  async listChatThreads(limit = 100) { return [...this.chatThreads].sort((a, b) => b.last_message_at.localeCompare(a.last_message_at)).slice(0, limit).map((t) => ({ ...t })); }
+  async addChatMessage(threadId: string, sender: "visitor" | "team", body: string) {
+    const m = { id: crypto.randomUUID(), thread_id: threadId, sender, body, created_at: new Date().toISOString() };
+    this.chatMessages.push(m);
+    const t = this.chatThreads.find((x) => x.id === threadId);
+    if (t) { t.last_message_at = m.created_at; if (sender === "visitor") t.unread_admin = true; }
+    return { ...m };
+  }
+  async listChatMessages(threadId: string) { return this.chatMessages.filter((m) => m.thread_id === threadId).sort((a, b) => a.created_at.localeCompare(b.created_at)).map((m) => ({ ...m })); }
+  async updateChatThread(id: string, patch: { status?: "open" | "closed"; unread_admin?: boolean }) { const t = this.chatThreads.find((x) => x.id === id); if (t) Object.assign(t, patch); }
   async listWizardQuestions(opts?: { activeOnly?: boolean }) {
     return this.wizardQuestions.filter((q) => !opts?.activeOnly || q.is_active).sort((a, b) => a.sort_order - b.sort_order).map((q) => ({ ...q }));
   }

@@ -200,6 +200,13 @@ export interface Repo {
   addNotification(n: { client_id: string; case_id: string | null; title: string; body: string; link: string | null }): Promise<void>;
   listNotifications(clientId: string, limit?: number): Promise<import("../types").ClientNotification[]>;
   markNotificationsRead(clientId: string): Promise<void>;
+  createChatThread(t: { token_hash: string; visitor_name: string; visitor_contact: string | null; landing: string | null }): Promise<import("../types").ChatThread>;
+  getChatThreadByTokenHash(hash: string): Promise<import("../types").ChatThread | null>;
+  getChatThread(id: string): Promise<import("../types").ChatThread | null>;
+  listChatThreads(limit?: number): Promise<import("../types").ChatThread[]>;
+  addChatMessage(threadId: string, sender: "visitor" | "team", body: string): Promise<import("../types").ChatMessage>;
+  listChatMessages(threadId: string): Promise<import("../types").ChatMessage[]>;
+  updateChatThread(id: string, patch: { status?: "open" | "closed"; unread_admin?: boolean }): Promise<void>;
   listBlogPosts(opts?: { publishedOnly?: boolean; limit?: number }): Promise<BlogPost[]>;
   getBlogPost(key: { id?: string; slug?: string }, opts?: { publishedOnly?: boolean }): Promise<BlogPost | null>;
   saveBlogPost(row: { id?: string; slug: string; title: string; excerpt: string; body: string; meta_title: string | null; meta_description: string | null; is_published: boolean }): Promise<BlogPost>;

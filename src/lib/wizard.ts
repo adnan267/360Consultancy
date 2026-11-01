@@ -5,7 +5,7 @@ import { z } from "zod";
  * non-sensitive answers to suggest relevant services and resources.
  * Shared by the client (step validation) and the server (/api/leads).
  */
-export const DESTINATIONS = ["united-states", "united-kingdom", "australia", "canada", "serbia", "mexico", "china", "germany", "france", "italy", "spain", "ireland", "netherlands", "sweden", "norway", "denmark", "finland", "poland", "new-zealand", "japan", "south-korea", "united-arab-emirates", "saudi-arabia", "russia", "kyrgyzstan", "uzbekistan", "undecided"] as const;
+export const DESTINATIONS = ["united-states", "united-kingdom", "australia", "canada", "serbia", "mexico", "china", "germany", "france", "italy", "spain", "ireland", "netherlands", "sweden", "norway", "denmark", "finland", "poland", "new-zealand", "japan", "south-korea", "united-arab-emirates", "saudi-arabia", "russia", "kyrgyzstan", "uzbekistan", "austria", "belgium", "switzerland", "portugal", "czech-republic", "hungary", "greece", "malta", "undecided"] as const;
 export const PURPOSES = ["study", "work", "visit", "business", "spiritual", "unsure"] as const;
 export type Purpose = (typeof PURPOSES)[number];
 

@@ -390,3 +390,6 @@ export const EMAIL_TEMPLATE_KEYS = ["case_status", "payment_verified", "delivera
 export type EmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number];
 export interface EmailTemplate { key: EmailTemplateKey; subject: string; body: string; updated_at: string }
 export interface ClientNotification { id: string; client_id: string; case_id: string | null; title: string; body: string; link: string | null; read_at: string | null; created_at: string }
+
+export interface ChatThread { id: string; token_hash: string; visitor_name: string; visitor_contact: string | null; status: "open" | "closed"; unread_admin: boolean; landing: string | null; created_at: string; last_message_at: string }
+export interface ChatMessage { id: string; thread_id: string; sender: "visitor" | "team"; body: string; created_at: string }

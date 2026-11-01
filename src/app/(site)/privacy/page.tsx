@@ -17,6 +17,7 @@ export default function Privacy() {
       <h2>4. Who we share it with</h2>
       <p>We use service providers to run the website and store data (for example our hosting provider, database provider and email provider). They process data on our behalf. We do not sell your personal data.</p>
       <h2>4A. Client portal and uploaded documents</h2>
+      <p>If you use the website chat we store your name, your message, the optional phone/WhatsApp number you enter and the replies, so our team can answer you. Please do not share passport, ID or card details in chat.</p>
       <p>If you create a portal account we store your name, email, optional phone number and a hashed password. Documents you upload (which may include your passport page, certificates and financial evidence) are stored in private storage, are visible only to you and our authorised staff, and are used only to review your documents and prepare your submission. Staff downloads are logged. Please upload only what the step asks for. [Business owner and counsel to confirm: lawful basis, where files are hosted, who may access them, and the retention and deletion period for documents.]</p>
       <h2>5. How long we keep it</h2>
       <p>We keep booking records for a limited period needed for service delivery, accounting and dispute handling, after which they are deleted. [Retention period to be confirmed by the business owner.]</p>

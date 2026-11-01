@@ -470,6 +470,44 @@ export class SupabaseRepo implements Repo {
     fail(error, "listNotifications");
     return (data ?? []) as import("../types").ClientNotification[];
   }
+  async createChatThread(t: { token_hash: string; visitor_name: string; visitor_contact: string | null; landing: string | null }) {
+    const { data, error } = await db().from("chat_threads").insert(t).select("*").single();
+    fail(error, "createChatThread");
+    return data as import("../types").ChatThread;
+  }
+  async getChatThreadByTokenHash(hash: string) {
+    const { data, error } = await db().from("chat_threads").select("*").eq("token_hash", hash).maybeSingle();
+    fail(error, "getChatThreadByTokenHash");
+    return (data ?? null) as import("../types").ChatThread | null;
+  }
+  async getChatThread(id: string) {
+    const { data, error } = await db().from("chat_threads").select("*").eq("id", id).maybeSingle();
+    fail(error, "getChatThread");
+    return (data ?? null) as import("../types").ChatThread | null;
+  }
+  async listChatThreads(limit = 100) {
+    const { data, error } = await db().from("chat_threads").select("*").order("last_message_at", { ascending: false }).limit(limit);
+    fail(error, "listChatThreads");
+    return (data ?? []) as import("../types").ChatThread[];
+  }
+  async addChatMessage(threadId: string, sender: "visitor" | "team", body: string) {
+    const { data, error } = await db().from("chat_messages").insert({ thread_id: threadId, sender, body }).select("*").single();
+    fail(error, "addChatMessage");
+    const patch: Record<string, unknown> = { last_message_at: new Date().toISOString() };
+    if (sender === "visitor") patch.unread_admin = true;
+    const r = await db().from("chat_threads").update(patch).eq("id", threadId);
+    fail(r.error, "addChatMessage.thread");
+    return data as import("../types").ChatMessage;
+  }
+  async listChatMessages(threadId: string) {
+    const { data, error } = await db().from("chat_messages").select("*").eq("thread_id", threadId).order("created_at", { ascending: true }).limit(500);
+    fail(error, "listChatMessages");
+    return (data ?? []) as import("../types").ChatMessage[];
+  }
+  async updateChatThread(id: string, patch: { status?: "open" | "closed"; unread_admin?: boolean }) {
+    const { error } = await db().from("chat_threads").update(patch).eq("id", id);
+    fail(error, "updateChatThread");
+  }
   async markNotificationsRead(clientId: string) {
     const { error } = await db().from("client_notifications").update({ read_at: new Date().toISOString() }).eq("client_id", clientId).is("read_at", null);
     fail(error, "markNotificationsRead");

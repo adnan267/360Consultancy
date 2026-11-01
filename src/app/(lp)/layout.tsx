@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CookieConsent } from "@/components/Analytics";
+import { ChatWidget } from "@/components/ChatWidget";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 
 export default function LpLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default function LpLayout({ children }: { children: React.ReactNode }) {
         <p className="mt-3 space-x-4"><Link href="/privacy" className="underline">Privacy</Link><Link href="/terms" className="underline">Terms</Link><Link href="/refund-policy" className="underline">Refunds</Link><Link href="/" className="underline">Full website</Link></p>
       </footer>
       <WhatsAppFloat />
+      <ChatWidget lp="landing" />
       <CookieConsent />
     </>
   );

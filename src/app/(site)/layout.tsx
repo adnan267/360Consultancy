@@ -1,4 +1,5 @@
 import { CookieConsent } from "@/components/Analytics";
+import { ChatWidget } from "@/components/ChatWidget";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -16,6 +17,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <main id="main">{children}</main>
       <Footer />
       <WhatsAppFloat />
+      <ChatWidget />
       <CookieConsent />
     </>
   );
