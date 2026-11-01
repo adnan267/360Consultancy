@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DESTINATIONS, PURPOSES } from "./wizard";
+import { RELIGIOUS_SECTIONS } from "./types";
 
 const slug = z.string().regex(/^[a-z0-9-]{1,60}$/, "Invalid selection");
 
@@ -220,4 +221,35 @@ export const emailTemplateSchema = z.strictObject({
   key: z.enum(["case_status", "payment_verified", "deliverables_ready", "new_message"]),
   subject: z.string().trim().min(3).max(200),
   body: z.string().trim().min(3).max(4000),
+});
+
+export const packageSchema = z.strictObject({
+  category: z.enum(["tour", "religious"]),
+  section: z.enum(RELIGIOUS_SECTIONS).nullable().default(null),
+  title: z.string().trim().min(3).max(120),
+  flag: z.string().trim().regex(/^[a-z]{2}$/).nullable().default(null),
+  country_slug: z.string().trim().regex(/^[a-z0-9-]{1,60}$/).nullable().default(null),
+  summary: z.string().trim().max(300).default(""),
+  highlights: z.array(z.string().trim().min(2).max(120)).max(10).default([]),
+  inclusions: z.array(z.string().trim().min(2).max(160)).max(15).default([]),
+  duration_days: z.number().int().min(1).max(90).nullable().default(null),
+  price_pkr: z.number().int().min(0).max(100_000_000).nullable().default(null),
+  price_note: z.string().trim().max(40).default("per person"),
+  show_price: z.boolean().default(false),
+  is_published: z.boolean().default(true),
+  sort_order: z.number().int().min(0).max(10_000).default(100),
+}).refine((v) => v.category === "religious" || v.section === null, { message: "Only religious packages have a section", path: ["section"] })
+  .refine((v) => v.category !== "religious" || v.section !== null, { message: "Choose the religious category for this package", path: ["section"] })
+  .refine((v) => !v.show_price || (v.price_pkr !== null && v.price_pkr > 0), { message: "Enter a price before choosing to show it", path: ["price_pkr"] });
+export const packageSlugSchema = z.string().regex(/^[a-z0-9-]{3,80}$/);
+
+export const newServiceSchema = z.strictObject({
+  slug: z.string().trim().regex(/^[a-z0-9-]{3,80}$/, "Use lowercase letters, numbers and hyphens in the URL name"),
+  title: z.string().trim().min(3).max(120),
+  summary: z.string().trim().min(5).max(300),
+  description: z.string().trim().max(2000).default(""),
+  inclusions: z.array(z.string().trim().min(2).max(160)).max(15).default([]),
+  fee_pkr: z.number().int().min(0).max(10_000_000),
+  fee_is_starting_price: z.boolean().default(false),
+  is_active: z.boolean().default(false),
 });

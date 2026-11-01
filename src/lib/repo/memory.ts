@@ -35,6 +35,23 @@ export class MemoryRepo implements Repo {
     Object.assign(s, patch);
     return { ...s };
   }
+  tourPackages: import("../types").TourPackage[] = [];
+  async createService(i: import("../types").NewServiceInput) {
+    if (this.services.some((x) => x.slug === i.slug)) return null;
+    const row = { id: crypto.randomUUID(), slug: i.slug, title: i.title, summary: i.summary, description: i.description, scope: "", inclusions: i.inclusions, exclusions: ["Government, embassy or third-party fees", "Any guarantee of an outcome"], duration_minutes: null, fee_pkr: i.fee_pkr, fee_is_starting_price: i.fee_is_starting_price, fee_needs_review: false, is_active: i.is_active, refund_terms: "Refund and cancellation conditions are set out in the Refund and Cancellation Policy.", sort_order: 100 + this.services.length };
+    this.services.push(row);
+    return { ...row };
+  }
+  async listTourPackages(opts?: { publishedOnly?: boolean; category?: "tour" | "religious"; section?: string }) {
+    return this.tourPackages.filter((p) => (!opts?.publishedOnly || p.is_published) && (!opts?.category || p.category === opts.category) && (!opts?.section || p.section === opts.section)).sort((a, b) => a.sort_order - b.sort_order || a.title.localeCompare(b.title)).map((p) => ({ ...p }));
+  }
+  async saveTourPackage(row: import("../types").TourPackage) {
+    const i = this.tourPackages.findIndex((p) => p.slug === row.slug);
+    const saved = { ...row, id: i >= 0 ? this.tourPackages[i].id : crypto.randomUUID() };
+    if (i >= 0) this.tourPackages[i] = saved; else this.tourPackages.push(saved);
+    return { ...saved };
+  }
+  async deleteTourPackage(slug: string) { this.tourPackages = this.tourPackages.filter((p) => p.slug !== slug); }
   async listCountries(opts?: { activeOnly?: boolean }) {
     return this.countries.filter((c) => !opts?.activeOnly || c.is_active).sort((a, b) => a.sort_order - b.sort_order);
   }

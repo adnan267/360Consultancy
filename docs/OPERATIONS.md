@@ -59,3 +59,9 @@ Scope: portal case payments. Consultation bookings still use the manual flow.
 - **Admin → Email templates**: edit client emails (placeholders `{{name}} {{reference}} {{status}} {{link}}`). Emails send only when an email provider is enabled.
 - **Notifications**: every status change, confirmed payment, handover and staff message also appears in the client's portal notification centre.
 - New services from migration 0014 are inactive with fee 0; activate them under Services & pricing after setting real fees.
+
+## Packages and new services (Admin)
+
+- **Admin → Packages:** add, edit, hide or delete tour packages and religious tour packages (Umrah, Hajj, Makkah & Madinah Ziyarat, Iraq, Iran, Other). Each package has its own price. The price is shown on the website only when "Show the price" is ticked; otherwise visitors see "Price on request".
+- **Admin → Services & pricing → Add a new service:** creates a new service (inactive until you tick Active). A fee above 0 is needed before bookings can be taken.
+- Jerusalem & Al-Aqsa is an information page only (Pakistani passports are not valid for Israel); packages are not shown there.

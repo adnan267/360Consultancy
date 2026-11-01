@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { ServiceEditor } from "@/components/AdminClient";
+import { NewServiceForm } from "@/components/AdminPackages";
 import { Card, Notice } from "@/components/ui";
 import { getSession } from "@/lib/auth";
 import { getRepo, isDatabaseConfigured } from "@/lib/repo";
@@ -15,6 +16,7 @@ export default async function ServicesAdmin() {
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold text-navy-900">Services &amp; pricing</h1>
       <Notice tone="warn">Seeded fees are <strong>proposed, not confirmed</strong>. Untick &ldquo;Needs review&rdquo; only once you have approved the fee. Do not activate a regulated service (e.g. application assistance) until its licensing requirements are confirmed. Changes to fees apply to new bookings only.</Notice>
+      <NewServiceForm />
       <div className="space-y-4">{services.map((s) => <Card key={s.id}><ServiceEditor s={s} /></Card>)}</div>
     </div>
   );

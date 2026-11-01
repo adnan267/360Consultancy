@@ -181,7 +181,7 @@ export const leadRequestSchema = z.strictObject({
 export type LeadRequest = z.infer<typeof leadRequestSchema>;
 
 export const LABELS: Record<string, string> = {
-  study: "Study", work: "Work", visit: "Visit / tourism", spiritual: "Holy tour", unsure: "Not sure yet",
+  study: "Study", work: "Work", visit: "Visit / tourism", spiritual: "Religious tour", unsure: "Not sure yet",
   valid_6m: "Valid for 6+ months", expiring: "Expires within 6 months", ready: "All ready", partial: "Some ready", full: "Complete consultancy: country suggestion, document review and visa file", review: "Only document review", guidance: "Only a call consultancy",
   hot: "Hot", warm: "Warm", cold: "Cold",
   "united-states": "United States", "united-kingdom": "United Kingdom", australia: "Australia", canada: "Canada", serbia: "Serbia", mexico: "Mexico", china: "China", "germany": "Germany", "france": "France", "italy": "Italy", "spain": "Spain", "ireland": "Ireland", "netherlands": "Netherlands", "sweden": "Sweden", "norway": "Norway", "denmark": "Denmark", "finland": "Finland", "poland": "Poland", "new-zealand": "New Zealand", "japan": "Japan", "south-korea": "South Korea", "united-arab-emirates": "United Arab Emirates", "saudi-arabia": "Saudi Arabia", "russia": "Russia", "kyrgyzstan": "Kyrgyzstan", "uzbekistan": "Uzbekistan", undecided: "Not decided",

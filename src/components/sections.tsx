@@ -368,7 +368,7 @@ export function FindOptionsBand({ className }: { className?: string }) {
     { href: "/wizard?purpose=work", label: "Work" },
     { href: "/wizard?purpose=visit", label: "Visit" },
     { href: "/destinations", label: "E-visa & visa-free" },
-    { href: "/spiritual-tours", label: "Holy tours" },
+    { href: "/religious-tours", label: "Religious tours" },
   ];
   return (
     <section aria-labelledby="find-options" className={cx("bg-navy-900 text-white", className)}>
@@ -420,9 +420,9 @@ export function SpiritualTeaser() {
       <div className="grid gap-5 md:grid-cols-2">
         <Card className="h-full">
           <Compass aria-hidden className="size-8 text-gold-600" />
-          <h3 className="mt-3 text-xl font-extrabold text-navy-900">Holy &amp; spiritual tours</h3>
-          <p className="mt-2 text-muted">Planning support for ziyarat and spiritual journeys, with official requirements explained.</p>
-          <ButtonLink href="/spiritual-tours" variant="secondary" className="mt-5">Spiritual tours <ArrowRight className="size-4" /></ButtonLink>
+          <h3 className="mt-3 text-xl font-extrabold text-navy-900">Religious &amp; Spiritual Tours</h3>
+          <p className="mt-2 text-muted">Umrah, Hajj guidance, Makkah and Madinah ziyarat, Iraq and Iran ziyarat and more, with official requirements explained.</p>
+          <ButtonLink href="/religious-tours" variant="secondary" className="mt-5">Religious tours <ArrowRight className="size-4" /></ButtonLink>
         </Card>
       </div>
     </Section>

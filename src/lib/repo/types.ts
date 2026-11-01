@@ -126,6 +126,10 @@ export interface Repo {
   listServices(opts?: { activeOnly?: boolean }): Promise<Service[]>;
   getServiceBySlug(slug: string): Promise<Service | null>;
   updateService(id: string, patch: ServicePatch): Promise<Service | null>;
+  createService(input: import("../types").NewServiceInput): Promise<Service | null>;
+  listTourPackages(opts?: { publishedOnly?: boolean; category?: "tour" | "religious"; section?: string }): Promise<import("../types").TourPackage[]>;
+  saveTourPackage(row: import("../types").TourPackage): Promise<import("../types").TourPackage>;
+  deleteTourPackage(slug: string): Promise<void>;
 
   listCountries(opts?: { activeOnly?: boolean }): Promise<Country[]>;
   getCountryBySlug(slug: string): Promise<Country | null>;

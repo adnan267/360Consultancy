@@ -393,3 +393,12 @@ export interface ClientNotification { id: string; client_id: string; case_id: st
 
 export interface ChatThread { id: string; token_hash: string; visitor_name: string; visitor_contact: string | null; status: "open" | "closed"; unread_admin: boolean; landing: string | null; created_at: string; last_message_at: string }
 export interface ChatMessage { id: string; thread_id: string; sender: "visitor" | "team"; body: string; created_at: string }
+
+export const RELIGIOUS_SECTIONS = ["umrah", "hajj", "makkah-madinah-ziyarat", "iraq-ziyarat", "iran-ziyarat", "jerusalem-al-aqsa", "other-religious"] as const;
+export type ReligiousSection = (typeof RELIGIOUS_SECTIONS)[number];
+export interface TourPackage {
+  id?: string; slug: string; category: "tour" | "religious"; section: ReligiousSection | null; title: string; flag: string | null; country_slug: string | null;
+  summary: string; highlights: string[]; inclusions: string[]; duration_days: number | null; price_pkr: number | null; price_note: string; show_price: boolean;
+  is_published: boolean; sort_order: number;
+}
+export interface NewServiceInput { slug: string; title: string; summary: string; description: string; inclusions: string[]; fee_pkr: number; fee_is_starting_price: boolean; is_active: boolean }

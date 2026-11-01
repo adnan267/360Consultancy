@@ -32,7 +32,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   async redirects() {
     return [
-      { source: "/umrah", destination: "/spiritual-tours", permanent: true },
+      { source: "/umrah", destination: "/religious-tours/umrah", permanent: true },
+      { source: "/hajj", destination: "/religious-tours/hajj", permanent: true },
+      { source: "/spiritual-tours", destination: "/religious-tours", permanent: true },
+      { source: "/holy-tours", destination: "/religious-tours", permanent: true },
       { source: "/destinations/:slug", destination: "/countries/:slug", permanent: true },
       { source: "/assessment", destination: "/wizard", permanent: true },
       { source: "/privacy-policy", destination: "/privacy", permanent: true },

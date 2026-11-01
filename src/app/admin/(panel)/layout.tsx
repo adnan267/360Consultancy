@@ -26,6 +26,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           {can(session.role, "lead:view") && <AdminNavLink href="/admin/chats">Chats</AdminNavLink>}
           {can(session.role, "payment:verify") && <AdminNavLink href="/admin/reports">Reports</AdminNavLink>}
           {can(session.role, "service:manage") && <AdminNavLink href="/admin/services">Services &amp; pricing</AdminNavLink>}
+          {can(session.role, "service:manage") && <AdminNavLink href="/admin/packages">Packages</AdminNavLink>}
           {can(session.role, "content:manage") && <AdminNavLink href="/admin/landing-pages">Landing pages</AdminNavLink>}
           {can(session.role, "content:manage") && <AdminNavLink href="/admin/faqs">FAQs</AdminNavLink>}
           {can(session.role, "content:manage") && <AdminNavLink href="/admin/questions">Wizard questions</AdminNavLink>}

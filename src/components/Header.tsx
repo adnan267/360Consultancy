@@ -21,7 +21,11 @@ const COUNTRY_MENU = [
 
 const UMRAH_MENU = [
   { href: "/tour-packages", label: "Tour packages" },
-  { href: "/spiritual-tours", label: "Holy & spiritual tours" },
+  { href: "/religious-tours", label: "Religious & Spiritual Tours" },
+  { href: "/religious-tours/umrah", label: "Umrah Packages" },
+  { href: "/religious-tours/hajj", label: "Hajj Packages" },
+  { href: "/religious-tours/iraq-ziyarat", label: "Iraq Ziyarat" },
+  { href: "/religious-tours/iran-ziyarat", label: "Iran Ziyarat" },
   { href: "/destinations", label: "E-visa & visa-free" },
 ];
 
@@ -33,7 +37,7 @@ const NAV = [
   { href: "/countries", label: "Countries" },
   { href: "/destinations", label: "E-visa & Visa-free" },
   { href: "/tour-packages", label: "Tour Packages" },
-  { href: "/spiritual-tours", label: "Holy Tours" },
+  { href: "/religious-tours", label: "Religious Tours" },
   { href: "/scholarships", label: "Scholarships" },
   { href: "/tools", label: "Tools" },
   { href: "/how-it-works", label: "How It Works" },

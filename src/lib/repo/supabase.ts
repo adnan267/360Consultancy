@@ -49,6 +49,34 @@ export class SupabaseRepo implements Repo {
     return (data as Service | null) ?? null;
   }
 
+  async createService(i: import("../types").NewServiceInput) {
+    const { data: last } = await db().from("services").select("sort_order").order("sort_order", { ascending: false }).limit(1);
+    const sort = ((last?.[0] as { sort_order?: number } | undefined)?.sort_order ?? 100) + 1;
+    const { data, error } = await db().from("services").insert({ slug: i.slug, title: i.title, summary: i.summary, description: i.description || i.summary, scope: i.summary, inclusions: i.inclusions, exclusions: ["Government, embassy or third-party fees", "Any guarantee of an outcome"], duration_minutes: null, fee_pkr: i.fee_pkr, fee_is_starting_price: i.fee_is_starting_price, fee_needs_review: false, is_active: i.is_active, refund_terms: "Refund and cancellation conditions are set out in the Refund and Cancellation Policy.", sort_order: sort }).select("*").maybeSingle();
+    if (error && error.code === "23505") return null;
+    fail(error, "createService");
+    return (data as Service | null) ?? null;
+  }
+  async listTourPackages(opts?: { publishedOnly?: boolean; category?: "tour" | "religious"; section?: string }) {
+    let q = db().from("tour_packages").select("*").order("sort_order").order("title");
+    if (opts?.publishedOnly) q = q.eq("is_published", true);
+    if (opts?.category) q = q.eq("category", opts.category);
+    if (opts?.section) q = q.eq("section", opts.section);
+    const { data, error } = await q;
+    fail(error, "listTourPackages");
+    return (data ?? []) as import("../types").TourPackage[];
+  }
+  async saveTourPackage(row: import("../types").TourPackage) {
+    const { id: _id, ...rest } = row;
+    void _id;
+    const { data, error } = await db().from("tour_packages").upsert({ ...rest, updated_at: new Date().toISOString() }, { onConflict: "slug" }).select("*").single();
+    fail(error, "saveTourPackage");
+    return data as import("../types").TourPackage;
+  }
+  async deleteTourPackage(slug: string) {
+    const { error } = await db().from("tour_packages").delete().eq("slug", slug);
+    fail(error, "deleteTourPackage");
+  }
   async listCountries(opts?: { activeOnly?: boolean }) {
     let q = db().from("countries").select("*").order("sort_order");
     if (opts?.activeOnly) q = q.eq("is_active", true);
