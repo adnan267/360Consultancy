@@ -133,18 +133,17 @@ export interface Suggestion {
  * live (active) catalogue by the caller; inactive services are never shown.
  */
 export function suggest(a: WizardDraft): Suggestion {
-  const serviceSlugs = ["visa-guidance-session"];
+  const serviceSlugs = ["visa-consultancy"];
   const links: Suggestion["links"] = [];
   const notes: string[] = [
     "These are suggestions to help you plan — not an eligibility assessment. Final decisions are made only by the relevant authority.",
   ];
 
-  if (a.serviceLevel === "full") serviceSlugs.push("document-review", "application-assistance");
   if (a.serviceLevel === "review") serviceSlugs.push("document-review");
+  if (a.serviceLevel === "guidance") serviceSlugs.push("visa-guidance-session");
   if (a.passportStatus === "expiring" || a.passportStatus === "none") notes.push("Most destinations expect a passport valid for at least 6 months beyond your travel dates. Renew or apply for it first.");
   if (a.docsStatus === "none" || a.docsStatus === "partial") notes.push("Use the document checklist to see what is still needed before you apply.");
-  if (a.wantsDocReview || a.timeline === "asap" || a.timeline === "within_3_months") serviceSlugs.push("document-review");
-  if (a.timeline === "asap") serviceSlugs.push("application-assistance");
+  if (a.wantsDocReview && a.serviceLevel !== "full") serviceSlugs.push("document-review");
 
   if (a.destination && a.destination !== "undecided") links.push({ label: "Read the destination guidance", href: `/countries/${a.destination}` });
   else links.push({ label: "Compare destinations", href: "/compare" });
@@ -183,7 +182,7 @@ export type LeadRequest = z.infer<typeof leadRequestSchema>;
 
 export const LABELS: Record<string, string> = {
   study: "Study", work: "Work", visit: "Visit / tourism", spiritual: "Holy tour", unsure: "Not sure yet",
-  valid_6m: "Valid for 6+ months", expiring: "Expires within 6 months", ready: "All ready", partial: "Some ready", full: "Full help: guidance, document review and file preparation", review: "Document review", guidance: "Guidance only",
+  valid_6m: "Valid for 6+ months", expiring: "Expires within 6 months", ready: "All ready", partial: "Some ready", full: "Complete consultancy: country suggestion, document review and visa file", review: "Only document review", guidance: "Only a call consultancy",
   hot: "Hot", warm: "Warm", cold: "Cold",
   "united-states": "United States", "united-kingdom": "United Kingdom", australia: "Australia", canada: "Canada", serbia: "Serbia", mexico: "Mexico", china: "China", "germany": "Germany", "france": "France", "italy": "Italy", "spain": "Spain", "ireland": "Ireland", "netherlands": "Netherlands", "sweden": "Sweden", "norway": "Norway", "denmark": "Denmark", "finland": "Finland", "poland": "Poland", "new-zealand": "New Zealand", "japan": "Japan", "south-korea": "South Korea", "united-arab-emirates": "United Arab Emirates", "saudi-arabia": "Saudi Arabia", "russia": "Russia", "kyrgyzstan": "Kyrgyzstan", "uzbekistan": "Uzbekistan", undecided: "Not decided",
   high_school: "High school", bachelor: "Bachelor's", master: "Master's", doctoral: "Doctoral", diploma: "Diploma", other: "Other",

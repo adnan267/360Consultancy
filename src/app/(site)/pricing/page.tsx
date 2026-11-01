@@ -30,11 +30,10 @@ export default async function PricingPage() {
         )}
 
         <section aria-labelledby="stages" className="max-w-3xl">
-          <h2 id="stages" className="text-2xl font-extrabold text-navy-900">How fees work for a full application case</h2>
+          <h2 id="stages" className="text-2xl font-extrabold text-navy-900">How fees work</h2>
           <ol className="mt-5 space-y-4 text-muted">
-            <li><strong className="text-navy-900">1. Starting fee{enabled && intake ? ` — ${formatPkr(intake.fee_pkr)}` : ""}.</strong> Opens secure document upload.</li>
-            <li><strong className="text-navy-900">2. Document review fee{enabled && review ? ` — ${formatPkr(review.fee_pkr)}` : ""}.</strong> Our team reviews your documents and sends a written report.</li>
-            <li><strong className="text-navy-900">3. Submission fee — quoted after review.</strong> If you want us to submit your file, we send a written quote with the exact scope. You pay it only after you accept; nothing is charged automatically.</li>
+            <li><strong className="text-navy-900">1. Consultancy fee{enabled && intake ? ` — ${formatPkr(intake.fee_pkr)}` : ""}.</strong> One fixed fee that covers country suggestion, document review and getting your visa file ready.</li>
+            <li><strong className="text-navy-900">2. Submission support — quoted separately.</strong> If you also want us to submit your file, we send a written quote with the exact scope. You pay it only after you accept.</li>
           </ol>
         </section>
 

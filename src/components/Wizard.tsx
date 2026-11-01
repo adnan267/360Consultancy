@@ -245,7 +245,7 @@ export function Wizard({ leadsEnabled, countries, services, questions = [], lp, 
 
             <div className="rounded-xl border-2 border-gold-500 bg-white p-5">
               <h3 className="text-lg font-extrabold text-navy-900">Ready to start with us?</h3>
-              <p className="mt-1 text-sm text-muted">Create your free client account and start a case. You pay the starting fee online first; each later step is also paid before it begins.</p>
+              <p className="mt-1 text-sm text-muted">Create your free client account and start a case. You pay the consultancy fee online first; it covers country suggestion, document review and visa file preparation.</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link href="/portal/register" className={buttonClass("primary")}>Create account &amp; start</Link>
                 <Link href="/portal/login" className={buttonClass("secondary")}>I already have an account</Link>

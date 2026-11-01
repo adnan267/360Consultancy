@@ -83,7 +83,7 @@ describe("the three-stage flow", () => {
     const cid = await signedUpClient();
     const caseId = await newCase(cid);
     const intake = dueOf(caseId, "intake");
-    expect(intake.amount_pkr).toBe(repo.services.find((s) => s.slug === "visa-guidance-session")!.fee_pkr);
+    expect(intake.amount_pkr).toBe(repo.services.find((s) => s.slug === "visa-consultancy")!.fee_pkr);
 
     // Step 1: cannot upload before the starting fee is verified
     expect(await uploadDocument(cid, caseId, { docType: "passport" }, { name: "p.pdf", bytes: PDF })).toMatchObject({ ok: false, status: 409 });
@@ -110,14 +110,11 @@ describe("the three-stage flow", () => {
     expect(doc.storage_path.startsWith(caseId + "/")).toBe(true);
     expect(storage.files.size).toBe(1);
 
-    // Step 3: review fee
+    // Step 3: review is included in the consultancy fee, so there is no review payment
     expect(await clientCaseAction(cid, caseId, { action: "request_review" })).toMatchObject({ ok: true });
-    expect(repo.cases[0].status).toBe("awaiting_review_payment");
-    const reviewFee = dueOf(caseId, "review").amount_pkr;
-    expect(reviewFee).toBe(repo.services.find((s) => s.slug === "document-review")!.fee_pkr);
-    expect(await uploadDocument(cid, caseId, { docType: "other" }, { name: "b.pdf", bytes: PDF })).toMatchObject({ ok: false, status: 409 }); // locked
-    expect(await verify(caseId, "review", reviewFee)).toMatchObject({ ok: true });
     expect(repo.cases[0].status).toBe("in_review");
+    expect(repo.casePayments.filter((p) => p.stage === "review")).toHaveLength(0);
+    expect(await uploadDocument(cid, caseId, { docType: "other" }, { name: "b.pdf", bytes: PDF })).toMatchObject({ ok: false, status: 409 }); // locked
 
     // Step 4: staff review — cannot finish until documents are accepted
     expect(await applyCaseAdminAction(caseId, { action: "complete_review", report: "All documents look complete for this route.", quotePkr: 9000 }, admin)).toMatchObject({ ok: false, status: 422 });
@@ -138,13 +135,12 @@ describe("the three-stage flow", () => {
     expect(repo.audit.filter((a) => a.case_id === caseId).length).toBeGreaterThan(8);
   });
 
-  it("fixes loop: sent back for fixes, resubmitted without a second review fee", async () => {
+  it("fixes loop: sent back for fixes, resubmitted with no review fee", async () => {
     const cid = await signedUpClient();
     const caseId = await newCase(cid);
     await verify(caseId, "intake", dueOf(caseId, "intake").amount_pkr);
     await uploadDocument(cid, caseId, { docType: "passport" }, { name: "p.pdf", bytes: PDF });
     await clientCaseAction(cid, caseId, { action: "request_review" });
-    await verify(caseId, "review", dueOf(caseId, "review").amount_pkr);
     const doc = repo.documents[0];
     expect(await applyCaseAdminAction(caseId, { action: "set_document_status", documentId: doc.id, status: "needs_fix" }, admin)).toMatchObject({ ok: false, status: 422 }); // note required
     await applyCaseAdminAction(caseId, { action: "set_document_status", documentId: doc.id, status: "needs_fix", note: "Scan is blurry" }, admin);
@@ -155,8 +151,8 @@ describe("the three-stage flow", () => {
     expect(storage.files.size).toBe(0);
     await uploadDocument(cid, caseId, { docType: "passport" }, { name: "p2.jpg", bytes: JPG });
     expect(await clientCaseAction(cid, caseId, { action: "request_review" })).toMatchObject({ ok: true });
-    expect(repo.cases[0].status).toBe("in_review"); // review fee already paid
-    expect(repo.casePayments.filter((p) => p.stage === "review")).toHaveLength(1);
+    expect(repo.cases[0].status).toBe("in_review");
+    expect(repo.casePayments.filter((p) => p.stage === "review")).toHaveLength(0);
   });
 
   it("rejection returns the payment to the client; wrong-stage payments are refused", async () => {

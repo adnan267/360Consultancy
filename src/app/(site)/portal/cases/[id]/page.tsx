@@ -15,9 +15,8 @@ import { CASE_STAGE_LABEL, DECISION_LABEL, CASE_STATUS_LABEL, DOC_TYPE_LABEL, ty
 export const dynamic = "force-dynamic";
 
 const STEPS: { label: string; done: CaseStatus[] }[] = [
-  { label: "Pay starting fee", done: ["documents_open", "awaiting_review_payment", "in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
+  { label: "Pay consultancy fee", done: ["documents_open", "awaiting_review_payment", "in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
   { label: "Upload documents", done: ["awaiting_review_payment", "in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
-  { label: "Pay review fee", done: ["in_review", "review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
   { label: "Document review", done: ["review_complete", "awaiting_submission_payment", "submission_in_progress", "submitted", "completed"] },
   { label: "Accept quote & pay submission fee", done: ["submission_in_progress", "submitted", "completed"] },
   { label: "File submitted", done: ["submitted", "completed"] },

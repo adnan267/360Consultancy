@@ -224,13 +224,13 @@ export const CASE_STATUSES = [
 export type CaseStatus = (typeof CASE_STATUSES)[number];
 
 export const CASE_STATUS_LABEL: Record<CaseStatus, string> = {
-  awaiting_intake_payment: "Step 1 — pay the starting fee",
+  awaiting_intake_payment: "Step 1 — pay the consultancy fee",
   documents_open: "Step 2 — upload your documents",
-  awaiting_review_payment: "Step 3 — pay the review fee",
-  in_review: "Step 4 — documents under review",
-  review_complete: "Step 5 — review ready",
-  awaiting_submission_payment: "Step 6 — pay the submission fee",
-  submission_in_progress: "Step 7 — we are preparing your submission",
+  awaiting_review_payment: "Review fee due (older cases)",
+  in_review: "Step 3 — documents under review",
+  review_complete: "Step 4 — review ready",
+  awaiting_submission_payment: "Step 5 — pay the submission fee",
+  submission_in_progress: "Step 6 — we are preparing your submission",
   submitted: "Submitted",
   completed: "Completed and handed over",
   cancelled: "Cancelled",
@@ -238,7 +238,7 @@ export const CASE_STATUS_LABEL: Record<CaseStatus, string> = {
 
 export const CASE_STAGES = ["intake", "review", "submission"] as const;
 export type CaseStage = (typeof CASE_STAGES)[number];
-export const CASE_STAGE_LABEL: Record<CaseStage, string> = { intake: "Starting fee", review: "Document review fee", submission: "Submission fee" };
+export const CASE_STAGE_LABEL: Record<CaseStage, string> = { intake: "Consultancy fee", review: "Document review fee", submission: "Submission fee" };
 
 export const CASE_PURPOSES = ["study", "work", "visit", "other"] as const;
 export type CasePurpose = (typeof CASE_PURPOSES)[number];

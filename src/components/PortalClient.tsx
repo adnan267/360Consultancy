@@ -132,7 +132,7 @@ export function CaseActions(props: { caseId: string; payingStage: CaseStage | nu
           <p className="text-xs text-muted">Your case unlocks only after we verify the payment in our bank account — a screenshot or this button alone is not confirmation.</p>
         </form>
       )}
-      {props.canRequestReview && <Button disabled={busy} onClick={() => act({ action: "request_review" }, "Sent. The review fee is now due.")}>Send documents for review</Button>}
+      {props.canRequestReview && <Button disabled={busy} onClick={() => act({ action: "request_review" }, "Sent for review. This is included in your consultancy fee.")}>Send documents for review</Button>}
       {props.canAcceptQuote && <Button disabled={busy} onClick={() => act({ action: "accept_quote" }, "Quote accepted. The submission fee is now due.")}>Accept the quote and continue</Button>}
       {props.canCancel && <button type="button" disabled={busy} className="block text-sm font-semibold text-red-700 underline underline-offset-4" onClick={() => { if (confirm("Cancel this case?")) act({ action: "cancel" }, "Case cancelled."); }}>Cancel this case</button>}
     </div>

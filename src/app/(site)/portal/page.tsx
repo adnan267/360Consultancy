@@ -34,10 +34,10 @@ export default async function PortalHome() {
       <Card>
         <h2 className="font-bold text-navy-900">Start a new case</h2>
         <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted">
-          <li>Pay the starting fee{intake ? ` (${formatPkr(intake.fee_pkr)})` : ""} — this opens secure document upload.</li>
-          <li>Upload your documents.</li>
-          <li>Pay the document review fee{review ? ` (${formatPkr(review.fee_pkr)})` : ""} — our team reviews your documents and sends a report.</li>
-          <li>If you want us to submit your file, we quote the submission fee; you pay it only after you accept.</li>
+          <li>Pay the consultancy fee{intake ? ` (${formatPkr(intake.fee_pkr)})` : ""}. It covers country suggestion, document review and visa file preparation.</li>
+          <li>Upload your documents securely.</li>
+          <li>Our team reviews your documents and sends a written report. No separate review fee.</li>
+          <li>If you also want us to submit your file, we send a written quote; you pay it only after you accept.</li>
         </ol>
         <p className="mt-3 text-xs text-muted">Our fees are separate from government, embassy and biometric fees, which you pay directly to the authority. Fees shown may change before launch. No visa outcome is ever guaranteed.</p>
         <div className="mt-5"><NewCaseForm countries={countries.filter((c) => c.slug !== "other").map((c) => ({ slug: c.slug, name: c.name }))} /></div>

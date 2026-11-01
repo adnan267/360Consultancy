@@ -6,9 +6,9 @@ import { Card, Container, Notice, PageHero } from "@/components/ui";
 export const metadata: Metadata = { title: "How It Works", description: "From choosing your destination to receiving your deliverables, step by step.", alternates: { canonical: "/how-it-works" } };
 
 const statuses = [
-  ["Step 1: pay the starting fee", "Your case is created and waits for the starting fee. Nothing starts before it is paid and confirmed."],
+  ["Step 1: pay the consultancy fee", "Your case is created and waits for the consultancy fee (country suggestion, document review and visa file preparation). Nothing starts before it is paid and confirmed."],
   ["Upload documents", "Upload your documents. You can also message our team here."],
-  ["Under review", "After the review fee is paid, our team reviews your documents and may ask for corrections."],
+  ["Under review", "Our team reviews your documents and may ask for corrections."],
   ["Proposal and final payment", "You receive a clear quote for preparation or submission. You pay only after you approve it."],
   ["Submitted / Completed", "We record the submission and hand over your files. Our work being complete is separate from the visa decision."],
   ["Visa decision", "Only the official authority decides. We record the decision only when you tell us the real outcome."],

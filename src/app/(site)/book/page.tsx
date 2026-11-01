@@ -5,7 +5,7 @@ import { getClientSession } from "@/lib/client-auth";
 import { portalEnabled, servicesEnabled } from "@/lib/env";
 import { site, whatsappLink } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Book a Consultation", description: "Register, pay the starting fee and start your case with 360 Consultancy.", alternates: { canonical: "/book" } };
+export const metadata: Metadata = { title: "Book a Consultation", description: "Register, pay the consultancy fee and start your case with 360 Consultancy.", alternates: { canonical: "/book" } };
 export const dynamic = "force-dynamic";
 
 export default async function BookPage() {
@@ -25,7 +25,7 @@ export default async function BookPage() {
               <ol className="mt-4 list-decimal space-y-2 pl-5 text-muted">
                 <li>Create your client account (free).</li>
                 <li>Choose your destination and purpose, and start a case.</li>
-                <li>Pay the starting fee online. Your case opens as soon as the payment is confirmed.</li>
+                <li>Pay the consultancy fee online. Your case opens as soon as the payment is confirmed.</li>
                 <li>Each later step (document review, submission) is also paid before it begins.</li>
               </ol>
               <div className="mt-6 flex flex-wrap gap-3">

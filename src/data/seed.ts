@@ -13,6 +13,23 @@ const REFUND_PLACEHOLDER =
 
 export const SEED_SERVICES: Service[] = [
   {
+    id: "seed-visa-consultancy",
+    slug: "visa-consultancy",
+    title: "Visa Consultancy (Complete Package)",
+    summary: "We suggest the right country for you, review your documents and get your visa file ready, for one fixed fee.",
+    description: "A complete guided service: country suggestion, document review and visa file preparation. The final decision is always made by the relevant authority.",
+    scope: "Country suggestion, document review and visa file preparation.",
+    inclusions: ["Country suggestion", "Document review against the official checklist", "Visa file prepared and organised"],
+    exclusions: ["Government, embassy or biometric fees", "Any guarantee of a visa or immigration outcome"],
+    duration_minutes: null,
+    fee_pkr: 15000,
+    fee_is_starting_price: false,
+    fee_needs_review: false,
+    is_active: true,
+    refund_terms: REFUND_PLACEHOLDER,
+    sort_order: 1,
+  },
+  {
     id: "seed-visa-guidance-session",
     slug: "visa-guidance-session",
     title: "Visa Guidance Session",

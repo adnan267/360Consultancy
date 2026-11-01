@@ -23,7 +23,7 @@ const zodFields = (issues: { path: PropertyKey[]; message: string }[]) => {
 };
 
 /** Which service's fee is charged for each automatic stage (fees stay editable in the DB). Stage 3 is a staff quote. */
-export const INTAKE_SERVICE_SLUG = "visa-guidance-session";
+export const INTAKE_SERVICE_SLUG = "visa-consultancy";
 export const REVIEW_SERVICE_SLUG = "document-review";
 
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // keeps requests under serverless body limits
@@ -143,18 +143,9 @@ export async function clientCaseAction(clientId: string, caseId: string, input: 
       if (status !== "documents_open") return fail(409, "Documents can only be sent for review while the case is at the upload step.");
       if (d.documents.length === 0) return fail(422, "Upload at least one document first.");
       if (d.documents.some((x) => x.status === "needs_fix")) return fail(422, "Please replace the documents marked 'needs fix' first.");
-      const reviewPaid = payment(d, "review")?.status === "verified";
-      if (reviewPaid) {
-        // Returning after requested fixes: the review fee was already paid, so no second charge.
-        if (!(await repo.updateCase(caseId, { status: "in_review" }, status))) return fail(409, "Case changed. Please refresh.");
-        await audit(d, actor, "case_status_changed", status, "in_review", { via: "resubmitted_after_fixes" });
-        break;
-      }
-      const svc = await repo.getServiceBySlug(REVIEW_SERVICE_SLUG);
-      if (!svc || !svc.is_active || svc.fee_pkr <= 0) return fail(503, "Document review is not available right now.");
-      if (!(await repo.updateCase(caseId, { status: "awaiting_review_payment" }, status))) return fail(409, "Case changed. Please refresh.");
-      if (!payment(d, "review")) await repo.insertCasePayment({ case_id: caseId, stage: "review", amount_pkr: svc.fee_pkr });
-      await audit(d, actor, "case_status_changed", status, "awaiting_review_payment", { reviewFeePkr: svc.fee_pkr });
+      // Document review is included in the consultancy package, so there is no separate review charge.
+      if (!(await repo.updateCase(caseId, { status: "in_review" }, status))) return fail(409, "Case changed. Please refresh.");
+      await audit(d, actor, "case_status_changed", status, "in_review", { via: "included_in_package" });
       break;
     }
     case "accept_quote": {
@@ -195,7 +186,7 @@ export async function uploadDocument(clientId: string, caseId: string, meta: unk
   if (!m.success) return fail(422, "Choose what kind of document this is.");
   const d = await getClientCase(clientId, caseId);
   if (!d) return fail(404, "Case not found");
-  if (!UPLOADS_OPEN.includes(d.case.status)) return fail(409, "Documents can be added at the upload step only (after the starting fee is confirmed).");
+  if (!UPLOADS_OPEN.includes(d.case.status)) return fail(409, "Documents can be added at the upload step only (after the consultancy fee is confirmed).");
   if (file.bytes.length === 0) return fail(422, "That file is empty.");
   if (file.bytes.length > MAX_UPLOAD_BYTES) return fail(413, "File is too large. The limit is 4 MB — compress or rescan it.");
   if (d.documents.length >= MAX_DOCS_PER_CASE) return fail(409, `You can upload up to ${MAX_DOCS_PER_CASE} documents.`);

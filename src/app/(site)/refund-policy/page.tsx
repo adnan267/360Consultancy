@@ -10,7 +10,7 @@ export default function Refund() {
       <p>You can cancel at any time before paying, at no cost.</p>
       <h2>2. If we do not deliver the service</h2>
       <p>If we do not provide the service you paid for, you can request a refund of the fee you paid for that service. This applies to every service we offer, including MBBS and other study-abroad guidance. Examples of &ldquo;not delivered&rdquo; are: we are unable to carry out the review or preparation you paid for, we cancel the service, or we do not hand over the deliverables described in your proposal.</p>
-      <p>Each payment stage (starting fee, document review, submission) is treated separately. A stage that we have delivered is not refunded under this section.</p>
+      <p>Each payment stage (consultancy fee, submission) is treated separately. A stage that we have delivered is not refunded under this section.</p>
       <h2>3. If you cancel after work has started</h2>
       <p>[Refundable portion and any non-refundable amount for work already carried out — to be set by the business owner and confirmed with legal counsel.]</p>
       <h2>4. Outcomes decided by others</h2>

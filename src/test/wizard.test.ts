@@ -79,7 +79,7 @@ describe("createLead", () => {
     const { rows } = await repo.listLeads({ limit: 10, offset: 0 });
     expect(rows).toHaveLength(1);
     expect(rows[0].email).toBe("ayesha@example.com");
-    expect(rows[0].suggested_services).toContain("visa-guidance-session");
+    expect(rows[0].suggested_services).toContain("visa-consultancy");
   });
   it("rejects invalid, unknown-field and no-consent payloads", async () => {
     process.env.LEADS_ENABLED = "true";
