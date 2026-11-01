@@ -8,18 +8,22 @@ import { useEffect, useState } from "react";
 import { STUDY_MENU } from "@/data/study";
 import { buttonClass, cx } from "./ui";
 
-const SERVICE_MENU = [
-  { href: "/wizard?purpose=study", label: "Study Visa" },
-  { href: "/lp/mbbs-abroad", label: "MBBS Abroad" },
+const VISA_MENU = [
+  { href: "/wizard", label: "Find Visa Options" },
+  { href: "/services", label: "All Visa Services" },
   { href: "/wizard?purpose=work", label: "Work Visa" },
   { href: "/wizard?purpose=visit", label: "Visit Visa" },
   { href: "/services#document-review", label: "Document Review" },
+  { href: "/countries", label: "Countries" },
+  { href: "/destinations", label: "E-visa & Visa-free" },
   { href: "/tools", label: "Free Tools" },
 ];
-const COUNTRY_MENU = [
-  ["united-states", "United States"], ["united-kingdom", "United Kingdom"], ["canada", "Canada"], ["australia", "Australia"], ["serbia", "Serbia"], ["mexico", "Mexico"], ["china", "China"],
-].map(([slug, label]) => ({ href: `/countries/${slug}`, label }));
-
+const ABOUT_MENU = [
+  { href: "/about", label: "About Us" },
+  { href: "/how-it-works", label: "How It Works" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contact" },
+];
 const UMRAH_MENU = [
   { href: "/tour-packages", label: "Tour packages" },
   { href: "/religious-tours", label: "Religious & Spiritual Tours" },
@@ -34,14 +38,12 @@ const NAV = [
   { href: "/", label: "Home" },
   { href: "/wizard", label: "Find Visa Options" },
   { href: "/services", label: "Visa Services" },
-  { href: "/study-abroad", label: "Study Abroad" },
-  ...STUDY_MENU.map((m) => ({ href: m.href, label: `— ${m.label}` })),
   { href: "/countries", label: "Countries" },
   { href: "/destinations", label: "E-visa & Visa-free" },
+  { href: "/study-abroad", label: "Study Abroad" },
+  ...STUDY_MENU.slice(0, 4).map((m) => ({ href: m.href, label: `— ${m.label}` })),
   { href: "/tour-packages", label: "Tour Packages" },
   { href: "/religious-tours", label: "Religious Tours" },
-  { href: "/tools", label: "Tools" },
-  { href: "/how-it-works", label: "How It Works" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact" },
@@ -74,13 +76,11 @@ export function Header({ portal = false }: { portal?: boolean }) {
         <nav aria-label="Main" className="hidden items-center gap-0.5 xl:flex">
           {[
             { href: "/", label: "Home" },
-            { href: "/wizard", label: "Find Visa" },
-            { href: "/services", label: "Services", menu: SERVICE_MENU },
-            { href: "/countries", label: "Countries", menu: COUNTRY_MENU },
-            { href: "/tour-packages", label: "Tours", menu: UMRAH_MENU },
+            { href: "/services", label: "Visa Services", menu: VISA_MENU },
             { href: "/study-abroad", label: "Study Abroad", menu: STUDY_MENU },
-            { href: "/about", label: "About Us" },
-            { href: "/contact", label: "Contact" },
+            { href: "/tour-packages", label: "Tours", menu: UMRAH_MENU },
+            { href: "/pricing", label: "Pricing" },
+            { href: "/about", label: "About", menu: ABOUT_MENU },
           ].map((n) => (
             <div key={n.href} className="group relative">
               <Link
