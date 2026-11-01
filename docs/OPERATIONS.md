@@ -65,3 +65,7 @@ Scope: portal case payments. Consultation bookings still use the manual flow.
 - **Admin → Packages:** add, edit, hide or delete tour packages and religious tour packages (Umrah, Hajj, Makkah & Madinah Ziyarat, Iraq, Iran, Other). Each package has its own price. The price is shown on the website only when "Show the price" is ticked; otherwise visitors see "Price on request".
 - **Admin → Services & pricing → Add a new service:** creates a new service (inactive until you tick Active). A fee above 0 is needed before bookings can be taken.
 - Jerusalem & Al-Aqsa is an information page only (Pakistani passports are not valid for Israel); packages are not shown there.
+
+## Study Abroad (countries, universities, scholarships)
+Admin → **Study Abroad** lists and edits all three record types (unlimited add). Starter records load automatically the first time the tables are empty.
+Rule: fill a field only when an official source states it; blank fields show "check the official site" publicly. A ranking needs its source and year. `tuition_free_note` on a university is what puts it on the Tuition-Free page — fill it only if the university or national portal says so. Scholarships marked `full` must come from the official page. Starter data lives in `src/data/study.ts`.

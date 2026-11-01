@@ -253,3 +253,63 @@ export const newServiceSchema = z.strictObject({
   fee_is_starting_price: z.boolean().default(false),
   is_active: z.boolean().default(false),
 });
+
+// ── Study abroad (admin) ────────────────────────────────────────────────────
+const httpsUrl = z.string().trim().max(500).regex(/^https:\/\/[^\s]+$/, "Must start with https://");
+const longText = z.string().trim().max(4000).default("");
+const midText = z.string().trim().max(600).default("");
+const isoDate = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").nullable().default(null);
+export const studySlugSchema = z.string().regex(/^[a-z0-9-]{2,100}$/);
+
+export const destinationSchema = z.strictObject({
+  name: z.string().trim().min(2).max(80),
+  flag: z.string().trim().regex(/^[a-z]{2}$/).nullable().default(null),
+  region: z.enum(["Asia & Middle East", "Europe", "North America", "Oceania"]),
+  overview: longText, degree_programs: longText, tuition_info: longText, living_cost: longText,
+  language_requirements: longText, english_tests: longText, admission_requirements: longText, visa_requirements: longText, work_options: longText,
+  official_links: z.array(z.strictObject({ label: z.string().trim().min(2).max(120), url: httpsUrl })).max(12).default([]),
+  last_verified: isoDate,
+  is_published: z.boolean().default(true),
+  sort_order: z.number().int().min(0).max(10_000).default(100),
+});
+
+export const universitySchema = z.strictObject({
+  name: z.string().trim().min(2).max(160),
+  country_slug: z.string().trim().regex(/^[a-z0-9-]{2,60}$/),
+  city: z.string().trim().max(80).default(""),
+  logo_url: httpsUrl.nullable().default(null),
+  overview: longText,
+  official_url: httpsUrl.or(z.literal("")).default(""),
+  ranking: z.string().trim().max(120).default(""),
+  ranking_source: z.string().trim().max(120).default(""),
+  ranking_year: z.number().int().min(1990).max(2100).nullable().default(null),
+  degree_levels: z.array(z.string().trim().min(2).max(40)).max(10).default([]),
+  programs: z.array(z.string().trim().min(2).max(160)).max(60).default([]),
+  tuition_range: midText, admission_requirements: longText, english_requirements: midText,
+  scholarships_note: longText, scholarship_coverage: longText, tuition_free_note: midText,
+  apply_opens: z.string().trim().max(120).default(""), apply_closes: z.string().trim().max(120).default(""),
+  admission_portal_url: httpsUrl.nullable().default(null),
+  last_verified: isoDate,
+  is_published: z.boolean().default(true),
+  sort_order: z.number().int().min(0).max(10_000).default(100),
+}).refine((v) => !v.ranking || (v.ranking_source && v.ranking_year), { message: "A ranking needs its source and year", path: ["ranking_source"] });
+
+export const scholarshipDetailSchema = z.strictObject({
+  name: z.string().trim().min(3).max(160),
+  country_slug: z.string().trim().regex(/^[a-z0-9-]{2,60}$/),
+  provider: z.string().trim().min(2).max(200),
+  degree_levels: z.array(z.string().trim().min(2).max(40)).max(10).default([]),
+  funding_type: z.enum(["full", "tuition_free", "partial", "other", "not_stated"]),
+  funding_details: longText,
+  deadline: isoDate,
+  deadline_note: midText,
+  eligibility_summary: z.string().trim().min(2).max(4000),
+  official_url: httpsUrl,
+  last_verified: isoDate,
+  is_published: z.boolean().default(true),
+  eligible_nationalities: midText, disciplines: midText, tuition_coverage: midText, stipend: midText, accommodation: midText, airfare: midText, insurance: midText,
+  min_qualification: midText, age_requirement: midText, language_requirement: midText,
+  required_documents: z.array(z.string().trim().min(2).max(200)).max(30).default([]),
+  opens_note: midText, duration: z.string().trim().max(300).default(""),
+  sort_order: z.number().int().min(0).max(10_000).default(100),
+});

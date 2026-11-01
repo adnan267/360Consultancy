@@ -52,6 +52,36 @@ export class MemoryRepo implements Repo {
     return { ...saved };
   }
   async deleteTourPackage(slug: string) { this.tourPackages = this.tourPackages.filter((p) => p.slug !== slug); }
+  studyDestinations: import("../types").StudyDestination[] = [];
+  universities: import("../types").University[] = [];
+  async listStudyDestinations(opts?: { publishedOnly?: boolean }) {
+    return this.studyDestinations.filter((d) => !opts?.publishedOnly || d.is_published).sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)).map((d) => ({ ...d }));
+  }
+  async saveStudyDestination(row: import("../types").StudyDestination) {
+    const i = this.studyDestinations.findIndex((d) => d.slug === row.slug);
+    if (i >= 0) this.studyDestinations[i] = { ...row }; else this.studyDestinations.push({ ...row });
+    return { ...row };
+  }
+  async deleteStudyDestination(slug: string) { this.studyDestinations = this.studyDestinations.filter((d) => d.slug !== slug); }
+  async listUniversities(f: import("../types").UniversityFilter = {}) {
+    const q = f.q?.toLowerCase();
+    return this.universities
+      .filter((u) => (!f.publishedOnly || u.is_published) && (!f.country || u.country_slug === f.country) && (!f.level || u.degree_levels.includes(f.level)) && (!q || u.name.toLowerCase().includes(q) || u.city.toLowerCase().includes(q)))
+      .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)).map((u) => ({ ...u }));
+  }
+  async saveUniversity(row: import("../types").University) {
+    const i = this.universities.findIndex((u) => u.slug === row.slug);
+    if (i >= 0) this.universities[i] = { ...row }; else this.universities.push({ ...row });
+    return { ...row };
+  }
+  async deleteUniversity(slug: string) { this.universities = this.universities.filter((u) => u.slug !== slug); }
+  async saveScholarship(row: Omit<Scholarship, "id"> & { id?: string }) {
+    const i = this.scholarships.findIndex((x) => x.slug === row.slug);
+    const saved = { ...row, id: i >= 0 ? this.scholarships[i].id : row.id ?? crypto.randomUUID() } as Scholarship;
+    if (i >= 0) this.scholarships[i] = saved; else this.scholarships.push(saved);
+    return { ...saved };
+  }
+  async deleteScholarship(slug: string) { this.scholarships = this.scholarships.filter((x) => x.slug !== slug); }
   async listCountries(opts?: { activeOnly?: boolean }) {
     return this.countries.filter((c) => !opts?.activeOnly || c.is_active).sort((a, b) => a.sort_order - b.sort_order);
   }

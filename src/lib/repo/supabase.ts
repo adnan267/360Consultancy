@@ -77,6 +77,55 @@ export class SupabaseRepo implements Repo {
     const { error } = await db().from("tour_packages").delete().eq("slug", slug);
     fail(error, "deleteTourPackage");
   }
+  async listStudyDestinations(opts?: { publishedOnly?: boolean }) {
+    let q = db().from("study_destinations").select("*").order("sort_order").order("name");
+    if (opts?.publishedOnly) q = q.eq("is_published", true);
+    const { data, error } = await q;
+    fail(error, "listStudyDestinations");
+    return (data ?? []) as import("../types").StudyDestination[];
+  }
+  async saveStudyDestination(row: import("../types").StudyDestination) {
+    const { data, error } = await db().from("study_destinations").upsert({ ...row, updated_at: new Date().toISOString() }, { onConflict: "slug" }).select("*").single();
+    fail(error, "saveStudyDestination");
+    return data as import("../types").StudyDestination;
+  }
+  async deleteStudyDestination(slug: string) {
+    const { error } = await db().from("study_destinations").delete().eq("slug", slug);
+    fail(error, "deleteStudyDestination");
+  }
+  async listUniversities(f: import("../types").UniversityFilter = {}) {
+    let q = db().from("universities").select("*").order("sort_order").order("name");
+    if (f.publishedOnly) q = q.eq("is_published", true);
+    if (f.country) q = q.eq("country_slug", f.country);
+    if (f.level) q = q.contains("degree_levels", [f.level]);
+    if (f.q) {
+      const s = safeSearch(f.q);
+      if (s) q = q.or(`name.ilike.%${s}%,city.ilike.%${s}%`);
+    }
+    const { data, error } = await q;
+    fail(error, "listUniversities");
+    return (data ?? []) as import("../types").University[];
+  }
+  async saveUniversity(row: import("../types").University) {
+    const { data, error } = await db().from("universities").upsert({ ...row, updated_at: new Date().toISOString() }, { onConflict: "slug" }).select("*").single();
+    fail(error, "saveUniversity");
+    return data as import("../types").University;
+  }
+  async deleteUniversity(slug: string) {
+    const { error } = await db().from("universities").delete().eq("slug", slug);
+    fail(error, "deleteUniversity");
+  }
+  async saveScholarship(row: Omit<Scholarship, "id"> & { id?: string }) {
+    const { id: _id, ...rest } = row;
+    void _id;
+    const { data, error } = await db().from("scholarships").upsert({ ...rest, updated_at: new Date().toISOString() }, { onConflict: "slug" }).select("*").single();
+    fail(error, "saveScholarship");
+    return data as Scholarship;
+  }
+  async deleteScholarship(slug: string) {
+    const { error } = await db().from("scholarships").delete().eq("slug", slug);
+    fail(error, "deleteScholarship");
+  }
   async listCountries(opts?: { activeOnly?: boolean }) {
     let q = db().from("countries").select("*").order("sort_order");
     if (opts?.activeOnly) q = q.eq("is_active", true);
@@ -204,7 +253,7 @@ export class SupabaseRepo implements Repo {
   }
 
   async listScholarships(f: ScholarshipFilter) {
-    let q = db().from("scholarships").select("*").order("name");
+    let q = db().from("scholarships").select("*").order("sort_order").order("name");
     if (f.publishedOnly) q = q.eq("is_published", true);
     if (f.country) q = q.eq("country_slug", f.country);
     if (f.level) q = q.contains("degree_levels", [f.level]);

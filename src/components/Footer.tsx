@@ -49,6 +49,8 @@ export function Footer() {
                 </li>
               ))}
               <li><Link href="/study-abroad" className="text-navy-200 transition hover:text-gold-300">Study Abroad</Link></li>
+              <li><Link href="/study-abroad/universities" className="text-navy-200 transition hover:text-gold-300">Find Your University</Link></li>
+              <li><Link href="/scholarships" className="text-navy-200 transition hover:text-gold-300">Scholarships</Link></li>
               <li><Link href="/pricing" className="text-navy-200 transition hover:text-gold-300">Pricing</Link></li>
               <li><Link href="/blog" className="text-navy-200 transition hover:text-gold-300">Blog</Link></li>
               <li><Link href="/faq" className="text-navy-200 transition hover:text-gold-300">FAQs</Link></li>

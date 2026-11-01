@@ -130,6 +130,14 @@ export interface Repo {
   listTourPackages(opts?: { publishedOnly?: boolean; category?: "tour" | "religious"; section?: string }): Promise<import("../types").TourPackage[]>;
   saveTourPackage(row: import("../types").TourPackage): Promise<import("../types").TourPackage>;
   deleteTourPackage(slug: string): Promise<void>;
+  listStudyDestinations(opts?: { publishedOnly?: boolean }): Promise<import("../types").StudyDestination[]>;
+  saveStudyDestination(row: import("../types").StudyDestination): Promise<import("../types").StudyDestination>;
+  deleteStudyDestination(slug: string): Promise<void>;
+  listUniversities(f?: import("../types").UniversityFilter): Promise<import("../types").University[]>;
+  saveUniversity(row: import("../types").University): Promise<import("../types").University>;
+  deleteUniversity(slug: string): Promise<void>;
+  saveScholarship(row: Omit<import("../types").Scholarship, "id"> & { id?: string }): Promise<import("../types").Scholarship>;
+  deleteScholarship(slug: string): Promise<void>;
 
   listCountries(opts?: { activeOnly?: boolean }): Promise<Country[]>;
   getCountryBySlug(slug: string): Promise<Country | null>;

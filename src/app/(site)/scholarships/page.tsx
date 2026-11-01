@@ -1,31 +1,31 @@
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
-import { DEGREE_LEVEL_LABEL } from "@/data/scholarships";
+import Link from "next/link";
 import { COUNTRY_CONTENT } from "@/data/countries";
+import { LEVEL_LABEL as DEGREE_LEVEL_LABEL, countryLabel, getStudyDestinations, getStudyScholarships } from "@/lib/study";
 import { Flag } from "@/components/Flag";
 import { Badge, Button, Card, Container, Notice, PageHero } from "@/components/ui";
-import { getDestinationCountries, getPublicScholarships } from "@/lib/catalog";
 import { FUNDING_LABEL, FUNDING_TYPES, type FundingType } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Scholarship Finder", description: "Search scholarship records with funding type, eligibility summary, official source and last-verified date.", alternates: { canonical: "/scholarships" } };
 export const dynamic = "force-dynamic";
 
 const input = "rounded-xl border border-navy-200 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-gold-500/60";
-const tone = { full: "green", partial: "amber", other: "navy", not_stated: "gray" } as const;
+const tone = { full: "green", tuition_free: "green", partial: "amber", other: "navy", not_stated: "gray" } as const;
 
 export default async function ScholarshipsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const countries = await getDestinationCountries();
+  const countries = await getStudyDestinations();
   const funding = FUNDING_TYPES.includes(sp.funding as FundingType) ? (sp.funding as FundingType) : undefined;
   const country = countries.some((c) => c.slug === sp.country) ? sp.country : undefined;
   const level = sp.level && sp.level in DEGREE_LEVEL_LABEL ? sp.level : undefined;
   const q = sp.q?.trim().slice(0, 80) || undefined;
-  const results = await getPublicScholarships({ q, country, level, funding });
-  const countryName = (slug: string) => countries.find((c) => c.slug === slug)?.name ?? slug;
+  const results = await getStudyScholarships({ q, country, level, funding });
+  const countryName = (slug: string) => countryLabel(countries, slug);
 
   return (
     <>
-      <PageHero eyebrow="Scholarship finder" title="Search scholarships — verified against official sources" intro="Every record links to its official page and shows when we last checked it. Scholarships are competitive; none is guaranteed." />
+      <PageHero eyebrow="Scholarship finder" title="Find scholarships" intro="Every record links to its official page. Details are filled in only when an official source confirms them — otherwise you are told to check the official site. Scholarships are competitive; none is guaranteed." />
       <Container className="py-12">
         <form method="get" className="flex flex-wrap items-end gap-3" role="search" aria-label="Scholarship search">
           <div><label htmlFor="q" className="mb-1 block text-xs font-semibold">Keyword</label><input id="q" name="q" defaultValue={q} maxLength={80} className={`${input} w-56`} placeholder="Name, provider…" /></div>
@@ -40,14 +40,14 @@ export default async function ScholarshipsPage({ searchParams }: { searchParams:
 
         <ul className="mt-4 space-y-5">
           {results.map((s) => {
-            const flag = COUNTRY_CONTENT.find((c) => c.slug === s.country_slug)?.flag;
+            const flag = countries.find((c) => c.slug === s.country_slug)?.flag ?? COUNTRY_CONTENT.find((c) => c.slug === s.country_slug)?.flag;
             return (
               <li key={s.id}>
                 <Card className="p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       {flag && <Flag code={flag} label={countryName(s.country_slug)} className="mt-1 text-2xl" />}
-                      <div><h2 className="text-xl font-extrabold text-navy-900">{s.name}</h2><p className="text-sm text-muted">{countryName(s.country_slug)} · {s.provider}</p></div>
+                      <div><h2 className="text-xl font-extrabold text-navy-900"><Link href={`/scholarships/${s.slug}`} className="hover:underline">{s.name}</Link></h2><p className="text-sm text-muted">{countryName(s.country_slug)} · {s.provider}</p></div>
                     </div>
                     <Badge tone={tone[s.funding_type]}>{FUNDING_LABEL[s.funding_type]}</Badge>
                   </div>
@@ -59,14 +59,14 @@ export default async function ScholarshipsPage({ searchParams }: { searchParams:
                   </dl>
                   <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm">
                     <a href={s.official_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-bold text-navy-700 underline-offset-4 hover:underline">Official source <ExternalLink className="size-4" /></a>
-                    <span className="text-muted">{s.last_verified ? `Last verified ${new Date(s.last_verified).toLocaleDateString("en-GB", { dateStyle: "long" })}` : "Not yet verified"}</span>
+                    <Link href={`/scholarships/${s.slug}`} className="font-bold text-navy-700 hover:underline">Full details →</Link><span className="text-muted">{s.last_verified ? `Last verified ${new Date(s.last_verified).toLocaleDateString("en-GB", { dateStyle: "long" })}` : "Not yet verified — check official site"}</span>
                   </div>
                 </Card>
               </li>
             );
           })}
         </ul>
-        {results.length === 0 && <div className="mt-6"><Notice tone="info" title="No records match">Try fewer filters. Our finder lists only scholarships whose official page we have read, so it is still small.</Notice></div>}
+        {results.length === 0 && <div className="mt-6"><Notice tone="info" title="No records match">Try fewer filters. </Notice></div>}
         <div className="mt-10"><Notice tone="warn" title="How to read this list">Funding is shown as the provider describes it: “full”, “partial”, “other aid”, or “not stated”. Deadlines change every cycle — always confirm on the official page. We never guarantee a scholarship.</Notice></div>
       </Container>
     </>

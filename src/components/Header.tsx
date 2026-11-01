@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { STUDY_MENU } from "@/data/study";
 import { buttonClass, cx } from "./ui";
 
 const SERVICE_MENU = [
@@ -34,11 +35,11 @@ const NAV = [
   { href: "/wizard", label: "Find Visa Options" },
   { href: "/services", label: "Visa Services" },
   { href: "/study-abroad", label: "Study Abroad" },
+  ...STUDY_MENU.map((m) => ({ href: m.href, label: `— ${m.label}` })),
   { href: "/countries", label: "Countries" },
   { href: "/destinations", label: "E-visa & Visa-free" },
   { href: "/tour-packages", label: "Tour Packages" },
   { href: "/religious-tours", label: "Religious Tours" },
-  { href: "/scholarships", label: "Scholarships" },
   { href: "/tools", label: "Tools" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/pricing", label: "Pricing" },
@@ -77,7 +78,7 @@ export function Header({ portal = false }: { portal?: boolean }) {
             { href: "/services", label: "Services", menu: SERVICE_MENU },
             { href: "/countries", label: "Countries", menu: COUNTRY_MENU },
             { href: "/tour-packages", label: "Tours", menu: UMRAH_MENU },
-            { href: "/scholarships", label: "Scholarships" },
+            { href: "/study-abroad", label: "Study Abroad", menu: STUDY_MENU },
             { href: "/about", label: "About Us" },
             { href: "/contact", label: "Contact" },
           ].map((n) => (

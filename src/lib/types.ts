@@ -174,10 +174,11 @@ export interface Lead {
   created_at: string;
 }
 
-export const FUNDING_TYPES = ["full", "partial", "other", "not_stated"] as const;
+export const FUNDING_TYPES = ["full", "tuition_free", "partial", "other", "not_stated"] as const;
 export type FundingType = (typeof FUNDING_TYPES)[number];
 export const FUNDING_LABEL: Record<FundingType, string> = {
-  full: "Full funding (as described by the provider)",
+  full: "Fully funded (as described by the provider)",
+  tuition_free: "Tuition-free (as described by the provider)",
   partial: "Partial funding",
   other: "Other financial aid",
   not_stated: "Funding not stated — check the official source",
@@ -198,6 +199,21 @@ export interface Scholarship {
   official_url: string;
   last_verified: string | null;
   is_published: boolean;
+  // Detail fields (study-abroad module). Blank = not confirmed from an official source.
+  eligible_nationalities?: string;
+  disciplines?: string;
+  tuition_coverage?: string;
+  stipend?: string;
+  accommodation?: string;
+  airfare?: string;
+  insurance?: string;
+  min_qualification?: string;
+  age_requirement?: string;
+  language_requirement?: string;
+  required_documents?: string[];
+  opens_note?: string;
+  duration?: string;
+  sort_order?: number;
 }
 
 export interface ScholarshipFilter {
@@ -402,3 +418,53 @@ export interface TourPackage {
   is_published: boolean; sort_order: number;
 }
 export interface NewServiceInput { slug: string; title: string; summary: string; description: string; inclusions: string[]; fee_pkr: number; fee_is_starting_price: boolean; is_active: boolean }
+
+// ── Study abroad module ─────────────────────────────────────────────────────
+export const STUDY_REGIONS = ["Asia & Middle East", "Europe", "North America", "Oceania"] as const;
+export interface StudyLink { label: string; url: string }
+export interface StudyDestination {
+  slug: string;
+  name: string;
+  flag: string | null;
+  region: (typeof STUDY_REGIONS)[number];
+  overview: string;
+  degree_programs: string;
+  tuition_info: string;
+  living_cost: string;
+  language_requirements: string;
+  english_tests: string;
+  admission_requirements: string;
+  visa_requirements: string;
+  work_options: string;
+  official_links: StudyLink[];
+  last_verified: string | null;
+  is_published: boolean;
+  sort_order: number;
+}
+export interface University {
+  slug: string;
+  name: string;
+  country_slug: string;
+  city: string;
+  logo_url: string | null;
+  overview: string;
+  official_url: string;
+  ranking: string;
+  ranking_source: string;
+  ranking_year: number | null;
+  degree_levels: string[];
+  programs: string[];
+  tuition_range: string;
+  admission_requirements: string;
+  english_requirements: string;
+  scholarships_note: string;
+  scholarship_coverage: string;
+  tuition_free_note: string;
+  apply_opens: string;
+  apply_closes: string;
+  admission_portal_url: string | null;
+  last_verified: string | null;
+  is_published: boolean;
+  sort_order: number;
+}
+export interface UniversityFilter { q?: string; country?: string; level?: string; publishedOnly?: boolean }

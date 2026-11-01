@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FinalCta } from "@/components/sections";
 import { ButtonLink, Card, Container, Notice, PageHero } from "@/components/ui";
-import { getPublicCountries } from "@/lib/catalog";
-import { getCountryContent } from "@/data/countries";
+import { STUDY_MENU } from "@/data/study";
 
 export const metadata: Metadata = {
   title: "Study Abroad Guidance",
@@ -21,19 +20,18 @@ const steps = [
 
 export const revalidate = 300;
 
-export default async function StudyAbroadPage() {
-  const countries = (await getPublicCountries()).filter((c) => getCountryContent(c.slug) && !getCountryContent(c.slug)?.entry);
+export default function StudyAbroadPage() {
   return (
     <>
       <PageHero eyebrow="Study abroad" title="Plan your studies abroad with clear, honest guidance" intro="From choosing a country to preparing your documents — we explain each step and never promise an outcome.">
-        <div className="flex flex-wrap gap-3"><ButtonLink href="/wizard?purpose=study">Start your assessment</ButtonLink><ButtonLink href="/scholarships" variant="outline-light">Find scholarships</ButtonLink></div>
+        <div className="flex flex-wrap gap-3"><ButtonLink href="/wizard?purpose=study">Start your assessment</ButtonLink><ButtonLink href="/study-abroad/universities" variant="outline-light">Find your university</ButtonLink></div>
       </PageHero>
       <Container className="space-y-14 py-16">
         <section aria-labelledby="steps"><h2 id="steps" className="text-2xl font-extrabold text-navy-900">Your path in five steps</h2>
           <ol className="mt-6 grid gap-5 md:grid-cols-2">{steps.map(([t, d], i) => (<li key={t}><Card className="h-full"><p className="text-sm font-bold text-gold-700">Step {i + 1}</p><h3 className="mt-1 text-lg font-bold text-navy-900">{t}</h3><p className="mt-2 text-muted">{d}</p></Card></li>))}</ol>
         </section>
-        <section aria-labelledby="dest"><h2 id="dest" className="text-2xl font-extrabold text-navy-900">Destinations</h2>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{countries.map((c) => (<li key={c.slug}><Link href={`/countries/${c.slug}`} className="block rounded-xl border border-line bg-white p-4 font-semibold text-navy-800 shadow-card transition hover:border-gold-500">{c.name}</Link></li>))}</ul>
+        <section aria-labelledby="dest"><h2 id="dest" className="text-2xl font-extrabold text-navy-900">Explore Study Abroad</h2>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{STUDY_MENU.map((m) => (<li key={m.href}><Link href={m.href} className="block rounded-xl border border-line bg-white p-4 font-semibold text-navy-800 shadow-card transition hover:border-gold-500">{m.label}</Link></li>))}</ul>
         </section>
         <Notice tone="warn" title="What we do not do">We are an independent consultancy, not a university, embassy or government body. We cannot guarantee admission, a scholarship or a visa. University and visa fees are paid by you directly to those organisations.</Notice>
         <p className="text-sm text-muted">See <Link href="/pricing" className="font-semibold underline">pricing</Link> or <Link href="/how-it-works" className="font-semibold underline">how it works</Link>.</p>
