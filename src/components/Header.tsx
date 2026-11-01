@@ -20,6 +20,7 @@ const COUNTRY_MENU = [
 ].map(([slug, label]) => ({ href: `/countries/${slug}`, label }));
 
 const UMRAH_MENU = [
+  { href: "/tour-packages", label: "Tour packages" },
   { href: "/spiritual-tours", label: "Holy & spiritual tours" },
   { href: "/destinations", label: "E-visa & visa-free" },
 ];
@@ -31,6 +32,7 @@ const NAV = [
   { href: "/study-abroad", label: "Study Abroad" },
   { href: "/countries", label: "Countries" },
   { href: "/destinations", label: "E-visa & Visa-free" },
+  { href: "/tour-packages", label: "Tour Packages" },
   { href: "/spiritual-tours", label: "Holy Tours" },
   { href: "/scholarships", label: "Scholarships" },
   { href: "/tools", label: "Tools" },
@@ -70,7 +72,7 @@ export function Header({ portal = false }: { portal?: boolean }) {
             { href: "/wizard", label: "Find Visa" },
             { href: "/services", label: "Services", menu: SERVICE_MENU },
             { href: "/countries", label: "Countries", menu: COUNTRY_MENU },
-            { href: "/spiritual-tours", label: "Holy Tours", menu: UMRAH_MENU },
+            { href: "/tour-packages", label: "Tours", menu: UMRAH_MENU },
             { href: "/scholarships", label: "Scholarships" },
             { href: "/about", label: "About Us" },
             { href: "/contact", label: "Contact" },

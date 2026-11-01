@@ -1,0 +1,110 @@
+/**
+ * Pakistani-passport entry lists by type. Indicative only: rules change, so every item must be confirmed on the official site.
+ * Main source: Wikipedia, "Visa requirements for Pakistani citizens" (read 2026-11-01), cross-checked with Gulf News (Henley Index 2026, July 2026).
+ * Items with a `slug` also have a guidance page on this site with an official link.
+ */
+export interface Entry { name: string; flag: string; stay: string; slug?: string }
+export const ENTRY_AS_OF = "2026-11-01";
+export const ENTRY_SOURCES = [
+  { label: "Wikipedia – Visa requirements for Pakistani citizens", url: "https://en.wikipedia.org/wiki/Visa_requirements_for_Pakistani_citizens" },
+  { label: "Gulf News – Pakistan passport visa-free destinations (2026)", url: "https://gulfnews.com/world/asia/pakistan/summer-travel-2026-pakistan-passport-holders-can-visit-these-30-visa-free-destinations-1.500604352" },
+];
+
+export const VISA_FREE_LIST: Entry[] = [
+  { name: "Barbados", flag: "bb", stay: "90 days", slug: "barbados" },
+  { name: "Dominica", flag: "dm", stay: "6 months", slug: "dominica" },
+  { name: "The Gambia", flag: "gm", stay: "90 days", slug: "gambia" },
+  { name: "Haiti", flag: "ht", stay: "3 months" },
+  { name: "Micronesia", flag: "fm", stay: "30 days" },
+  { name: "Rwanda", flag: "rw", stay: "30 days", slug: "rwanda" },
+  { name: "Saint Vincent and the Grenadines", flag: "vc", stay: "3 months" },
+  { name: "Trinidad and Tobago", flag: "tt", stay: "90 days", slug: "trinidad-and-tobago" },
+  { name: "Vanuatu", flag: "vu", stay: "120 days", slug: "vanuatu" },
+  { name: "San Marino", flag: "sm", stay: "30 days (conditions apply)" },
+];
+
+export const ON_ARRIVAL_LIST: Entry[] = [
+  { name: "Comoros", flag: "km", stay: "45 days" },
+  { name: "Guinea-Bissau", flag: "gw", stay: "90 days" },
+  { name: "Maldives", flag: "mv", stay: "30 days", slug: "maldives" },
+  { name: "Palau", flag: "pw", stay: "30 days" },
+  { name: "Senegal", flag: "sn", stay: "1 month" },
+  { name: "Timor-Leste", flag: "tl", stay: "30 days" },
+  { name: "Tuvalu", flag: "tv", stay: "30 days" },
+  { name: "Bahrain", flag: "bh", stay: "14 days (eVisa or on arrival)", slug: "bahrain" },
+  { name: "Burundi", flag: "bi", stay: "1 month (online visa or on arrival)" },
+  { name: "Cambodia", flag: "kh", stay: "30 days (eVisa or on arrival)", slug: "cambodia" },
+  { name: "Liberia", flag: "lr", stay: "3 months (e-VOA)" },
+  { name: "Madagascar", flag: "mg", stay: "90 days (eVisa or on arrival)" },
+  { name: "Nepal", flag: "np", stay: "Up to 150 days (online visa or on arrival)", slug: "nepal" },
+  { name: "Sierra Leone", flag: "sl", stay: "Up to 3 months (eVisa or on arrival)" },
+  { name: "Somalia", flag: "so", stay: "30 days (eVisa or on arrival)" },
+  { name: "Sri Lanka", flag: "lk", stay: "30 days (ETA or on arrival)", slug: "sri-lanka" },
+  { name: "Samoa", flag: "ws", stay: "Entry permit on arrival", slug: "samoa" },
+];
+
+export const ETA_LIST: Entry[] = [
+  { name: "Kenya", flag: "ke", stay: "90 days", slug: "kenya" },
+  { name: "Sri Lanka", flag: "lk", stay: "30 days (ETA)", slug: "sri-lanka" },
+  { name: "Seychelles", flag: "sc", stay: "3 months (travel authorisation)", slug: "seychelles" },
+];
+
+export const EVISA_LIST: Entry[] = [
+  { name: "Albania", flag: "al", stay: "90 days", slug: "albania" },
+  { name: "Angola", flag: "ao", stay: "30 days" },
+  { name: "Antigua and Barbuda", flag: "ag", stay: "" },
+  { name: "Azerbaijan", flag: "az", stay: "30 days", slug: "azerbaijan" },
+  { name: "Bahamas", flag: "bs", stay: "3 months" },
+  { name: "Benin", flag: "bj", stay: "30 days" },
+  { name: "Bhutan", flag: "bt", stay: "90 days" },
+  { name: "Bolivia", flag: "bo", stay: "" },
+  { name: "Botswana", flag: "bw", stay: "3 months" },
+  { name: "Cameroon", flag: "cm", stay: "" },
+  { name: "Chad", flag: "td", stay: "" },
+  { name: "Colombia", flag: "co", stay: "" },
+  { name: "Cuba", flag: "cu", stay: "90 days" },
+  { name: "Côte d'Ivoire", flag: "ci", stay: "3 months" },
+  { name: "DR Congo", flag: "cd", stay: "7 days" },
+  { name: "Djibouti", flag: "dj", stay: "90 days" },
+  { name: "Ecuador", flag: "ec", stay: "" },
+  { name: "Equatorial Guinea", flag: "gq", stay: "" },
+  { name: "Ethiopia", flag: "et", stay: "90 days", slug: "ethiopia" },
+  { name: "Fiji", flag: "fj", stay: "" },
+  { name: "Gabon", flag: "ga", stay: "90 days" },
+  { name: "Georgia", flag: "ge", stay: "", slug: "georgia" },
+  { name: "Guinea", flag: "gn", stay: "90 days" },
+  { name: "Guyana", flag: "gy", stay: "" },
+  { name: "Indonesia", flag: "id", stay: "60 days", slug: "indonesia" },
+  { name: "Iraq", flag: "iq", stay: "30 days" },
+  { name: "Kyrgyzstan", flag: "kg", stay: "60 days", slug: "kyrgyzstan" },
+  { name: "Malawi", flag: "mw", stay: "90 days" },
+  { name: "Malaysia", flag: "my", stay: "30 days", slug: "malaysia" },
+  { name: "Mauritania", flag: "mr", stay: "30 days" },
+  { name: "Moldova", flag: "md", stay: "", slug: "moldova" },
+  { name: "Myanmar", flag: "mm", stay: "28 days" },
+  { name: "Namibia", flag: "na", stay: "3 months" },
+  { name: "Nigeria", flag: "ng", stay: "30 days" },
+  { name: "Oman", flag: "om", stay: "", slug: "oman" },
+  { name: "Papua New Guinea", flag: "pg", stay: "60 days" },
+  { name: "Philippines", flag: "ph", stay: "59 days" },
+  { name: "Qatar", flag: "qa", stay: "", slug: "qatar" },
+  { name: "Saint Kitts and Nevis", flag: "kn", stay: "30 days" },
+  { name: "Serbia", flag: "rs", stay: "90 days", slug: "serbia" },
+  { name: "Singapore", flag: "sg", stay: "", slug: "singapore" },
+  { name: "South Africa", flag: "za", stay: "" },
+  { name: "South Sudan", flag: "ss", stay: "" },
+  { name: "Suriname", flag: "sr", stay: "90 days" },
+  { name: "Syria", flag: "sy", stay: "" },
+  { name: "São Tomé and Príncipe", flag: "st", stay: "" },
+  { name: "Tajikistan", flag: "tj", stay: "60 days", slug: "tajikistan" },
+  { name: "Tanzania", flag: "tz", stay: "90 days", slug: "tanzania" },
+  { name: "Thailand", flag: "th", stay: "30 days", slug: "thailand" },
+  { name: "Togo", flag: "tg", stay: "15 days" },
+  { name: "Türkiye", flag: "tr", stay: "", slug: "turkey" },
+  { name: "Uganda", flag: "ug", stay: "3 months", slug: "uganda" },
+  { name: "United Arab Emirates", flag: "ae", stay: "", slug: "united-arab-emirates" },
+  { name: "Venezuela", flag: "ve", stay: "" },
+  { name: "Vietnam", flag: "vn", stay: "90 days", slug: "vietnam" },
+  { name: "Zambia", flag: "zm", stay: "90 days" },
+  { name: "Zimbabwe", flag: "zw", stay: "1 month", slug: "zimbabwe" },
+];
