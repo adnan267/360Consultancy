@@ -7,21 +7,46 @@ import { ContactCta, DirectoryTeaser, SpiritualTeaser, PurposeCards, FaqSection,
 import { getDestinationCountries, getDirectoryCountries, getPublicScholarships, getPublicServices, getActiveQuestions } from "@/lib/catalog";
 import { site } from "@/lib/site";
 
+import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 export const revalidate = 300;
 
 export default async function HomePage() {
   const [services, countries, scholarships, evisa, visaFree] = await Promise.all([getPublicServices(), getDestinationCountries(), getPublicScholarships(), getDirectoryCountries("evisa"), getDirectoryCountries("visa-free")]);
   const questions = await getActiveQuestions();
+  const sameAs = Object.values(site.social).filter(Boolean);
   const org = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: site.name,
-    url: siteUrl(),
-    logo: `${siteUrl()}/brand/logo-full.png`,
+    "@graph": [
+      {
+        "@type": ["Organization", "ProfessionalService"],
+        "@id": `${siteUrl()}/#organization`,
+        name: site.name,
+        url: siteUrl(),
+        logo: `${siteUrl()}/brand/logo-full.png`,
+        image: `${siteUrl()}/brand/logo-full.png`,
+        description: site.description,
+        telephone: site.contact.phone,
+        areaServed: { "@type": "Country", name: "Pakistan" },
+        knowsAbout: ["Visa consultancy", "Study abroad", "Scholarships", "Umrah and religious tours", "Tour packages"],
+        ...(sameAs.length ? { sameAs } : {}),
+        contactPoint: [{ "@type": "ContactPoint", telephone: site.contact.phone, contactType: "customer service", availableLanguage: ["en", "ur"], areaServed: "PK" }],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl()}/#website`,
+        url: siteUrl(),
+        name: site.name,
+        publisher: { "@id": `${siteUrl()}/#organization` },
+        inLanguage: "en",
+      },
+    ],
   };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(org).replace(/</g, "\\u003c") }} />
+      <JsonLd data={org} />
       <Hero />
       <PurposeCards />
       <section id="find-visa-options" aria-labelledby="fvo-title" className="bg-mist py-16 sm:py-20">

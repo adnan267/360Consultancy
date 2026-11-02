@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/JsonLd";
 import { PackageCard } from "@/components/PackageCard";
 import { FaqList, FinalCta } from "@/components/sections";
 import { ButtonLink, Card, Container, Notice, PageHero } from "@/components/ui";
@@ -25,6 +26,7 @@ export default async function ReligiousSectionPage({ params }: { params: Promise
   const wa = whatsappLink(`Hello 360 Consultancy, I would like a quote for: ${s.title}.`);
   return (
     <>
+      <Breadcrumbs trail={[["Religious & Spiritual Tours", "/religious-tours"], [s.title, `/religious-tours/${s.slug}`]]} />
       <PageHero eyebrow="Religious & spiritual tours" title={s.title} intro={s.short}>
         {!s.infoOnly && <div className="flex flex-wrap gap-3">{wa && <ButtonLink href={wa}>Get a quote</ButtonLink>}<ButtonLink href="/book" variant="outline-light">Book a consultation</ButtonLink></div>}
       </PageHero>

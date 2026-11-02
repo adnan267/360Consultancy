@@ -16,15 +16,15 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: site.name,
     openGraph: {
       type: "website",
+      locale: "en_PK",
       siteName: site.name,
       title: seo_title,
       description: seo_description,
       url: siteUrl(),
-      images: [{ url: "/brand/logo-full.png", width: 1400, height: 726, alt: `${site.name} logo` }],
     },
-    twitter: { card: "summary_large_image" },
-    alternates: { canonical: "/" },
-    ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION ? { verification: { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } } : {}),
+    twitter: { card: "summary_large_image", title: seo_title, description: seo_description },
+    robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
+    ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION || process.env.NEXT_PUBLIC_BING_VERIFICATION ? { verification: { ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } : {}), ...(process.env.NEXT_PUBLIC_BING_VERIFICATION ? { other: { "msvalidate.01": process.env.NEXT_PUBLIC_BING_VERIFICATION } } : {}) } } : {}),
   };
 }
 

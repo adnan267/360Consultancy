@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumbs, JsonLd } from "@/components/JsonLd";
 import { Flag } from "@/components/Flag";
 import { ApplyCta, Fact, NoGuarantee, OfficialLink, VerifiedNote } from "@/components/study";
 import { Container, PageHero } from "@/components/ui";
@@ -10,7 +11,7 @@ export const revalidate = 300;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const u = await getUniversity((await params).slug);
   if (!u) return {};
-  return { title: `${u.name} — Admission & Scholarships for Pakistani Students`, description: `${u.name}${u.city ? `, ${u.city}` : ""}: official website, admission information and scholarship guidance for Pakistani students.`, alternates: { canonical: `/study-abroad/universities/${u.slug}` } };
+  return { title: `${u.name}: Admission & Scholarships`, description: `${u.name}${u.city ? `, ${u.city}` : ""}: official website, admission information and scholarship guidance for Pakistani students.`, alternates: { canonical: `/study-abroad/universities/${u.slug}` } };
 }
 
 export default async function UniversityPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -19,6 +20,8 @@ export default async function UniversityPage({ params }: { params: Promise<{ slu
   const [d, schol] = await Promise.all([getStudyDestination(u.country_slug), getStudyScholarships({ country: u.country_slug })]);
   return (
     <>
+      <Breadcrumbs trail={[["Study Abroad", "/study-abroad"], ["Universities", "/study-abroad/universities"], [u.name, `/study-abroad/universities/${u.slug}`]]} />
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "CollegeOrUniversity", name: u.name, ...(u.official_url ? { url: u.official_url, sameAs: [u.official_url] } : {}), ...(u.logo_url ? { logo: u.logo_url } : {}), address: { "@type": "PostalAddress", addressLocality: u.city, addressCountry: d?.name ?? u.country_slug } }} />
       <PageHero eyebrow={[u.city, d?.name].filter(Boolean).join(", ")} title={u.name} intro={u.overview || `${u.name} is a university in ${[u.city, d?.name].filter(Boolean).join(", ")}. Check its official website for programmes, fees and admission rules.`}>
         {d?.flag && <Flag code={d.flag} label={d.name} className="text-4xl" />}
       </PageHero>

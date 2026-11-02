@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/JsonLd";
 import { Flag } from "@/components/Flag";
 import { ApplyCta, Fact, NoGuarantee, OfficialLink, VerifiedNote } from "@/components/study";
 import { Badge, Card, Container, PageHero } from "@/components/ui";
@@ -11,7 +12,7 @@ export const revalidate = 300;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const d = await getStudyDestination((await params).slug);
   if (!d) return {};
-  return { title: `Study in ${d.name} — Universities & Scholarships for Pakistani Students`, description: `Universities, scholarships, admission and student-visa information for studying in ${d.name}, with official links.`, alternates: { canonical: `/study-abroad/destinations/${d.slug}` } };
+  return { title: `Study in ${d.name} for Pakistani Students`, description: `Universities, scholarships, admission and student-visa information for studying in ${d.name}, with official links.`, alternates: { canonical: `/study-abroad/destinations/${d.slug}` } };
 }
 
 export default async function DestinationPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -20,6 +21,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
   const [unis, schol] = await Promise.all([getUniversities({ country: d.slug }), getStudyScholarships({ country: d.slug })]);
   return (
     <>
+      <Breadcrumbs trail={[["Study Abroad", "/study-abroad"], ["Destinations", "/study-abroad/destinations"], [d.name, `/study-abroad/destinations/${d.slug}`]]} />
       <PageHero eyebrow={d.region} title={`Study in ${d.name}`} intro={d.overview || `Information for Pakistani students who want to study in ${d.name}. We add details only from official sources — use the official links below in the meantime.`}>
         {d.flag && <Flag code={d.flag} label={d.name} className="text-5xl" />}
       </PageHero>

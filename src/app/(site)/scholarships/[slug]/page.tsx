@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/JsonLd";
 import { Flag } from "@/components/Flag";
 import { ApplyCta, Fact, fmtDate, NoGuarantee, OfficialLink, VerifiedNote } from "@/components/study";
 import { Badge, Container, PageHero } from "@/components/ui";
@@ -11,7 +12,7 @@ export const revalidate = 300;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const s = await getStudyScholarship((await params).slug);
   if (!s) return {};
-  return { title: `${s.name} — Eligibility, Coverage & Deadlines`, description: `${s.name}: sponsor, eligibility, coverage and official application page for Pakistani students.`, alternates: { canonical: `/scholarships/${s.slug}` } };
+  return { title: `${s.name}: Eligibility & Deadlines`, description: `${s.name}: sponsor, eligibility, coverage and official application page for Pakistani students.`, alternates: { canonical: `/scholarships/${s.slug}` } };
 }
 
 export default async function ScholarshipPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -22,6 +23,7 @@ export default async function ScholarshipPage({ params }: { params: Promise<{ sl
   const closing = s.deadline ? `${fmtDate(s.deadline)}${s.deadline_note ? ` — ${s.deadline_note}` : ""}` : s.deadline_note;
   return (
     <>
+      <Breadcrumbs trail={[["Scholarships", "/scholarships"], [s.name, `/scholarships/${s.slug}`]]} />
       <PageHero eyebrow={countryLabel(dests, s.country_slug)} title={s.name} intro={`Sponsor: ${s.provider}`}>
         <div className="flex items-center gap-3">{flag && <Flag code={flag} label={s.country_slug} className="text-4xl" />}<Badge tone={s.funding_type === "full" || s.funding_type === "tuition_free" ? "green" : "gray"}>{FUNDING_LABEL[s.funding_type]}</Badge></div>
       </PageHero>
